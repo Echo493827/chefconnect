@@ -1,0 +1,24 @@
+src/
+├── components/
+│   ├── common/
+│   │   ├── Navbar.tsx
+│   │   ├── Footer.tsx
+│   │   └── ProfileSwitch.tsx
+│   ├── user/
+│   │   ├── RecipeCard.tsx
+│   │   ├── ClassCard.tsx
+│   │   └── BookingForm.tsx
+│   └── chef/
+│       ├── ClassCreation.tsx
+│       ├── RecipeForm.tsx
+│       └── ScheduleManager.tsx
+├── pages/
+│   ├── Home.tsx
+│   ├── Profile.tsx
+│   ├── Recipes/
+│   ├── Classes/
+│   └── Bookings/
+├── context/
+│   └── UserContext.tsx  // Handle user/chef profile state
+└── services/
+    └── api.ts  // API calls to backend
