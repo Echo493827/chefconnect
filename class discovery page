@@ -1,0 +1,91 @@
+import React, { useState } from 'react';
+import { Search, Filter, MapPin } from 'lucide-react';
+
+// Sample data - this would come from your API
+const sampleClasses = [
+  {
+    id: 1,
+    title: "Italian Pasta Making",
+    chef: "Marco Rossi",
+    price: 75,
+    duration: "2 hours",
+    location: "San Francisco",
+    date: "2024-11-01",
+    time: "18:00",
+    image: "/api/placeholder/300/200",
+    cuisine: "Italian",
+    difficulty: "Intermediate",
+    spotsAvailable: 5
+  },
+  {
+    id: 2,
+    title: "Sushi Basics",
+    chef: "Yuki Tanaka",
+    price: 90,
+    duration: "3 hours",
+    location: "Los Angeles",
+    date: "2024-11-02",
+    time: "17:30",
+    image: "/api/placeholder/300/200",
+    cuisine: "Japanese",
+    difficulty: "Beginner",
+    spotsAvailable: 3
+  }
+];
+
+const ClassDiscoveryPage = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCuisine, setSelectedCuisine] = useState('');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('');
+  
+  const cuisineOptions = ['All', 'Italian', 'Japanese', 'French', 'Indian', 'Mexican'];
+  const difficultyOptions = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+
+  const ClassCard = ({ classData }) => (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+      <img 
+        src={classData.image} 
+        alt={classData.title} 
+        className="w-full h-48 object-cover"
+      />
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-semibold text-gray-900">{classData.title}</h3>
+          <span className="text-lg font-bold text-emerald-600">${classData.price}</span>
+        </div>
+        <p className="text-sm text-gray-600 mb-2">by {classData.chef}</p>
+        <div className="flex items-center text-sm text-gray-500 mb-2">
+          <MapPin className="w-4 h-4 mr-1" />
+          {classData.location}
+        </div>
+        <div className="flex justify-between items-center mt-4">
+          <span className="text-sm text-gray-600">{classData.date} • {classData.time}</span>
+          <span className="text-sm font-medium text-emerald-600">
+            {classData.spotsAvailable} spots left
+          </span>
+        </div>
+        <div className="mt-4">
+          <button className="w-full bg-emerald-600 text-white py-2 px-4 rounded-md hover:bg-emerald-700 transition-colors duration-300">
+            Book Class
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold text-gray-900 mb-8">Discover Cooking Classes</h1>
+      
+      {/* Search and Filters */}
+      <div className="mb-8">
+        <div className="flex gap-4 flex-wrap">
+          <div className="flex-1 min-w-[300px]">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search classes..."
+                className="w-full pl-10 pr-4 py-2 border rounded-lg"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
