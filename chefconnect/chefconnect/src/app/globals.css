@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Phase 1 wires these to next/font (Fraunces for display, Source Sans 3 for body).
+     Until then the Tailwind font stacks fall back to Georgia / system-ui. */
+  --font-display: "Fraunces";
+  --font-body: "Source Sans 3";
+}
+
+@layer base {
+  html {
+    @apply bg-flour text-iron font-body antialiased;
+  }
+
+  body {
+    @apply min-h-screen;
+  }
+
+  ::selection {
+    @apply bg-turmeric/30;
+  }
+
+  :focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-olive;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
