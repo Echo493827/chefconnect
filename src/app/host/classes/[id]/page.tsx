@@ -4,10 +4,14 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ClassForm } from "@/components/chef/class-form";
 import { PublishControls } from "@/components/chef/publish-controls";
-import { PageShell, StatusPill } from "@/components/ui";
+import { CancelSessionButton } from "@/components/chef/cancel-session-button";
+import { PageShell, StatusPill, ButtonLink, EmptyState } from "@/components/ui";
+import { formatSessionDateTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Edit class" };
+
+const FORMAT_LABELS: Record<string, string> = { in_person: "In person", virtual: "Virtual", hybrid: "Hybrid" };
 
 export default async function EditClassPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -19,12 +23,21 @@ export default async function EditClassPage({ params }: { params: { id: string }
   const { data: profile } = await supabase.from("chef_profiles").select("id, slug").eq("user_id", user.id).maybeSingle();
   if (!profile) redirect("/host/new");
 
-  // RLS lets a chef read their own class at any status; a stranger's id returns nothing.
   const { data: klass } = await supabase.from("classes").select("*").eq("id", params.id).maybeSingle();
   if (!klass || klass.chef_profile_id !== profile.id) notFound();
 
+  const { data: sessions } = await supabase
+    .from("sessions")
+    .select("id, format, starts_at, timezone, status, inperson_capacity, virtual_capacity, inperson_booked, virtual_booked")
+    .eq("class_id", klass.id)
+    .order("starts_at", { ascending: true });
+
+  const now = Date.now();
+  const upcoming = (sessions ?? []).filter((s) => s.status !== "cancelled" && new Date(s.starts_at).getTime() > now);
+  const past = (sessions ?? []).filter((s) => s.status === "cancelled" || new Date(s.starts_at).getTime() <= now);
+
   return (
-    <PageShell>
+    <PageShell width="lg">
       <Link href="/host" className="text-sm text-walnut hover:text-iron">
         ← Back to dashboard
       </Link>
@@ -46,7 +59,7 @@ export default async function EditClassPage({ params }: { params: { id: string }
               >
                 /chefs/{profile.slug}/{klass.slug}
               </Link>
-              . Add dates so people can book — session scheduling is coming next.
+              . Add dates below so people can book.
             </>
           ) : klass.status === "draft" ? (
             "This class is a draft — only you can see it. Publish when you're ready to share it."
@@ -56,9 +69,59 @@ export default async function EditClassPage({ params }: { params: { id: string }
         </p>
       </div>
 
-      <div className="mt-10">
-        <ClassForm klass={klass} />
-      </div>
+      <section className="mt-10">
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-2xl">Sessions</h2>
+          <ButtonLink href={`/host/classes/${klass.id}/sessions/new`}>Schedule a session</ButtonLink>
+        </div>
+        <div className="mt-4">
+          {upcoming.length === 0 && past.length === 0 ? (
+            <EmptyState title="No sessions yet">
+              A session is one date people can book. Schedule your first so this class can take bookings.
+            </EmptyState>
+          ) : (
+            <ul className="divide-y divide-line border-y border-line">
+              {[...upcoming, ...past].map((s) => {
+                const cancelled = s.status === "cancelled";
+                const isPast = new Date(s.starts_at).getTime() <= now;
+                const booked = s.inperson_booked + s.virtual_booked;
+                const capacity = s.inperson_capacity + s.virtual_capacity;
+                return (
+                  <li key={s.id} className="flex items-center justify-between gap-4 py-4">
+                    <div className={cancelled ? "text-walnut line-through" : ""}>
+                      <p className="font-medium">{formatSessionDateTime(s.starts_at, s.timezone)}</p>
+                      <p className="text-sm text-walnut">
+                        {FORMAT_LABELS[s.format]} · {booked}/{capacity} booked
+                        {cancelled && " · cancelled"}
+                      </p>
+                    </div>
+                    {!cancelled && !isPast && (
+                      <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-4">
+                          <Link
+                            href={`/host/classes/${klass.id}/sessions/${s.id}`}
+                            className="text-sm text-walnut transition-colors hover:text-iron"
+                          >
+                            Edit
+                          </Link>
+                          <CancelSessionButton classId={klass.id} sessionId={s.id} />
+                        </div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </section>
+
+      <section className="mt-12 border-t border-line pt-8">
+        <h2 className="font-display text-2xl">Class details</h2>
+        <div className="mt-4">
+          <ClassForm klass={klass} />
+        </div>
+      </section>
     </PageShell>
   );
 }

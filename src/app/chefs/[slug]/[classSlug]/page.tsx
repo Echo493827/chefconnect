@@ -4,12 +4,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/ui";
 import { SKILL_LEVEL_LABELS } from "@/components/chef/chef-type";
+import { formatDuration, formatSessionDateTime, seatsLeftLabel } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-// Resolve a class from the chef slug + class slug. RLS hides drafts, archived
-// classes, and suspended chefs from the public, so this only finds live classes
-// (or the chef's own, when signed in as themselves).
+const FORMAT_LABELS: Record<string, string> = { in_person: "In person", virtual: "Virtual", hybrid: "In person + virtual" };
+
 async function loadClass(chefSlug: string, classSlug: string) {
   const supabase = createClient();
   const { data: chef } = await supabase.from("chef_profiles").select("*").eq("slug", chefSlug).maybeSingle();
@@ -21,7 +21,7 @@ async function loadClass(chefSlug: string, classSlug: string) {
     .eq("slug", classSlug)
     .maybeSingle();
   if (!klass) return null;
-  return { chef, klass };
+  return { supabase, chef, klass };
 }
 
 export async function generateMetadata({
@@ -34,19 +34,21 @@ export async function generateMetadata({
   return { title: found.klass.title, description: found.klass.summary ?? undefined };
 }
 
-function formatDuration(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h && m) return `${h}h ${m}m`;
-  if (h) return `${h}h`;
-  return `${m}m`;
-}
-
 export default async function ClassDetailPage({ params }: { params: { slug: string; classSlug: string } }) {
   const found = await loadClass(params.slug, params.classSlug);
   if (!found) notFound();
-  const { chef, klass } = found;
+  const { supabase, chef, klass } = found;
 
+  // Upcoming, still-scheduled sessions, with the public (fuzzed) location info.
+  const { data: sessionRows } = await supabase
+    .from("sessions")
+    .select("id, format, starts_at, timezone, inperson_capacity, virtual_capacity, inperson_booked, virtual_booked, locations(city, neighborhood)")
+    .eq("class_id", klass.id)
+    .eq("status", "scheduled")
+    .gt("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: true });
+
+  const sessions = sessionRows ?? [];
   const price = klass.price_cents === 0 ? "Free" : `$${(klass.price_cents / 100).toFixed(2)}`;
 
   return (
@@ -76,7 +78,7 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
         </ul>
       )}
 
-      <div className="mt-10 grid gap-10 md:grid-cols-[1fr_18rem]">
+      <div className="mt-10 grid gap-10 md:grid-cols-[1fr_20rem]">
         <div className="max-w-prose">
           {klass.description && <div className="whitespace-pre-line leading-relaxed text-iron">{klass.description}</div>}
 
@@ -112,9 +114,38 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
         <aside className="md:pt-1">
           <div className="rounded border border-line bg-cream/60 p-5">
             <h2 className="font-display text-lg">Upcoming dates</h2>
-            <p className="mt-2 text-sm leading-relaxed text-walnut">
-              No dates are scheduled yet. Booking opens once {chef.business_name || "the chef"} adds a session — that&rsquo;s
-              the next thing we&rsquo;re building.
+            {sessions.length === 0 ? (
+              <p className="mt-2 text-sm leading-relaxed text-walnut">
+                No dates are scheduled yet. Check back soon.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {sessions.map((s) => {
+                  const loc = Array.isArray(s.locations) ? s.locations[0] : s.locations;
+                  const area = loc ? [loc.neighborhood, loc.city].filter(Boolean).join(", ") : null;
+                  const seats =
+                    s.format === "virtual"
+                      ? seatsLeftLabel(s.virtual_booked, s.virtual_capacity)
+                      : s.format === "in_person"
+                        ? seatsLeftLabel(s.inperson_booked, s.inperson_capacity)
+                        : seatsLeftLabel(
+                            s.inperson_booked + s.virtual_booked,
+                            s.inperson_capacity + s.virtual_capacity,
+                          );
+                  return (
+                    <li key={s.id} className="border-b border-line pb-3 last:border-0 last:pb-0">
+                      <p className="font-medium">{formatSessionDateTime(s.starts_at, s.timezone)}</p>
+                      <p className="mt-0.5 text-sm text-walnut">
+                        {FORMAT_LABELS[s.format]}
+                        {area ? ` · ${area}` : ""} · {seats}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            <p className="mt-4 border-t border-line pt-3 text-sm text-walnut">
+              Booking opens soon — that&rsquo;s the next thing we&rsquo;re building.
             </p>
           </div>
         </aside>

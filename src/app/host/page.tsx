@@ -53,6 +53,9 @@ export default async function HostDashboard() {
           </p>
         </div>
         <div className="flex gap-3">
+          <ButtonLink href="/host/locations" variant="secondary">
+            Locations
+          </ButtonLink>
           <ButtonLink href="/host/profile" variant="secondary">
             Edit profile
           </ButtonLink>
