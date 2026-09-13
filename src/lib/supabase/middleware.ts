@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { readPublicSupabaseEnv } from "@/lib/env";
 
 // Route prefixes that require a signed-in user. Add to this as pages are built
-// (e.g. "/host", "/account"); unauthenticated visitors are sent to /login.
-const PROTECTED_PREFIXES: string[] = [];
+// (e.g. "/host" when chef tools land); unauthenticated visitors are sent to /login.
+const PROTECTED_PREFIXES: string[] = ["/account"];
 
 // Refreshes the Supabase session cookie on every request so Server Components
 // never see a stale or expired session, and enforces PROTECTED_PREFIXES.
@@ -27,10 +27,16 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // getUser() validates the token with Supabase Auth; never trust getSession() here.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getUser() validates the token with Supabase Auth; never trust getSession()
+  // here. If Supabase is unreachable, treat the visitor as signed out rather
+  // than erroring every page on the site.
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    user = null;
+  }
 
   const path = request.nextUrl.pathname;
   const isProtected = PROTECTED_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
