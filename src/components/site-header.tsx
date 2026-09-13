@@ -39,6 +39,9 @@ export async function SiteHeader() {
                   Moderation
                 </Link>
               )}
+              <Link href="/bookings" className="text-walnut transition-colors hover:text-iron">
+                My bookings
+              </Link>
               <Link href={isChef ? "/host" : "/host/new"} className="text-walnut transition-colors hover:text-iron">
                 {isChef ? "Chef dashboard" : "Teach a class"}
               </Link>

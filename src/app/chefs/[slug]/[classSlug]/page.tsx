@@ -132,6 +132,12 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
                             s.inperson_booked + s.virtual_booked,
                             s.inperson_capacity + s.virtual_capacity,
                           );
+                  const totalLeft =
+                    s.format === "virtual"
+                      ? s.virtual_capacity - s.virtual_booked
+                      : s.format === "in_person"
+                        ? s.inperson_capacity - s.inperson_booked
+                        : s.inperson_capacity + s.virtual_capacity - s.inperson_booked - s.virtual_booked;
                   return (
                     <li key={s.id} className="border-b border-line pb-3 last:border-0 last:pb-0">
                       <p className="font-medium">{formatSessionDateTime(s.starts_at, s.timezone)}</p>
@@ -139,14 +145,21 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
                         {FORMAT_LABELS[s.format]}
                         {area ? ` · ${area}` : ""} · {seats}
                       </p>
+                      {totalLeft > 0 ? (
+                        <Link
+                          href={`/book/${s.id}`}
+                          className="mt-2 inline-block rounded bg-olive px-3.5 py-1.5 text-sm font-medium text-cream transition-colors hover:bg-olive-deep"
+                        >
+                          Book this date
+                        </Link>
+                      ) : (
+                        <span className="mt-2 inline-block text-sm text-walnut">Full</span>
+                      )}
                     </li>
                   );
                 })}
               </ul>
             )}
-            <p className="mt-4 border-t border-line pt-3 text-sm text-walnut">
-              Booking opens soon — that&rsquo;s the next thing we&rsquo;re building.
-            </p>
           </div>
         </aside>
       </div>
