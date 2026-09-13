@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 
-// Shown on every page. Resolves the signed-in state on the server; if
-// Supabase is unreachable it quietly renders the signed-out header instead
-// of taking the whole page down.
+// Shown on every page. Resolves the signed-in state and role on the server; if
+// Supabase is unreachable it quietly renders the signed-out header instead of
+// taking the whole page down.
 export async function SiteHeader() {
   let displayName: string | null = null;
+  let role: string | null = null;
+  let isChef = false;
 
   try {
     const supabase = createClient();
@@ -13,12 +15,11 @@ export async function SiteHeader() {
       data: { user },
     } = await supabase.auth.getUser();
     if (user) {
-      const { data: profile } = await supabase
-        .from("users")
-        .select("display_name")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data: profile } = await supabase.from("users").select("display_name, role").eq("id", user.id).maybeSingle();
       displayName = profile?.display_name ?? "Account";
+      role = profile?.role ?? "attendee";
+      const { data: chef } = await supabase.from("chef_profiles").select("id").eq("user_id", user.id).maybeSingle();
+      isChef = Boolean(chef);
     }
   } catch {
     // fall through to the signed-out header
@@ -30,11 +31,21 @@ export async function SiteHeader() {
         <Link href="/" className="font-display text-xl tracking-tight">
           ChefConnect
         </Link>
-        <nav className="flex items-center gap-5 text-sm" aria-label="Account">
+        <nav className="flex items-center gap-5 text-sm" aria-label="Main">
           {displayName ? (
-            <Link href="/account" className="max-w-[16rem] truncate transition-colors hover:text-walnut">
-              {displayName}
-            </Link>
+            <>
+              {role === "admin" && (
+                <Link href="/admin" className="text-walnut transition-colors hover:text-iron">
+                  Moderation
+                </Link>
+              )}
+              <Link href={isChef ? "/host" : "/host/new"} className="text-walnut transition-colors hover:text-iron">
+                {isChef ? "Chef dashboard" : "Teach a class"}
+              </Link>
+              <Link href="/account" className="max-w-[16rem] truncate transition-colors hover:text-walnut">
+                {displayName}
+              </Link>
+            </>
           ) : (
             <>
               <Link href="/login" className="transition-colors hover:text-walnut">

@@ -88,6 +88,7 @@ export type Database = {
           cover_image_url: string | null
           verification_status: Database["public"]["Enums"]["verification_status"]
           is_accepting_bookings: boolean
+          is_suspended: boolean
           rating_avg: number
           rating_count: number
           created_at: string
@@ -107,6 +108,7 @@ export type Database = {
           cover_image_url?: string | null
           verification_status?: Database["public"]["Enums"]["verification_status"]
           is_accepting_bookings?: boolean
+          is_suspended?: boolean
           rating_avg?: number
           rating_count?: number
           created_at?: string
@@ -126,6 +128,7 @@ export type Database = {
           cover_image_url?: string | null
           verification_status?: Database["public"]["Enums"]["verification_status"]
           is_accepting_bookings?: boolean
+          is_suspended?: boolean
           rating_avg?: number
           rating_count?: number
           created_at?: string
@@ -796,6 +799,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_chef_suspended: {
+        Args: {
+          p_chef_profile_id: string
+          p_suspended: boolean
+        }
+        Returns: undefined
+      }
+      admin_set_class_status: {
+        Args: {
+          p_class_id: string
+          p_status: Database["public"]["Enums"]["class_status"]
+        }
+        Returns: undefined
+      }
+      is_chef_suspended: {
+        Args: {
+          p_chef_profile_id: string
+        }
+        Returns: boolean
+      }
+      resolve_report: {
+        Args: {
+          p_report_id: string
+          p_status: Database["public"]["Enums"]["report_status"]
+        }
+        Returns: undefined
+      }
       array_to_search_text: {
         Args: {
           p_items: string[]
