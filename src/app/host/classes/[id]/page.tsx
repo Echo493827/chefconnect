@@ -32,6 +32,13 @@ export default async function EditClassPage({ params }: { params: { id: string }
     .eq("class_id", klass.id)
     .order("starts_at", { ascending: true });
 
+  // recap status per session (draft vs shared), to label the recap action
+  const sessionIds = (sessions ?? []).map((s) => s.id);
+  const { data: recapRows } = sessionIds.length
+    ? await supabase.from("recaps").select("session_id, published_at").in("session_id", sessionIds)
+    : { data: [] as { session_id: string; published_at: string | null }[] };
+  const recapBySession = new Map((recapRows ?? []).map((r) => [r.session_id, r]));
+
   const now = Date.now();
   const upcoming = (sessions ?? []).filter((s) => s.status !== "cancelled" && new Date(s.starts_at).getTime() > now);
   const past = (sessions ?? []).filter((s) => s.status === "cancelled" || new Date(s.starts_at).getTime() <= now);
@@ -95,9 +102,22 @@ export default async function EditClassPage({ params }: { params: { id: string }
                         {cancelled && " · cancelled"}
                       </p>
                     </div>
-                    {!cancelled && !isPast && (
-                      <div className="flex flex-col items-end gap-1">
-                        <div className="flex items-center gap-4">
+                    <div className="flex shrink-0 items-center gap-4">
+                      {!cancelled && (
+                        (() => {
+                          const recap = recapBySession.get(s.id);
+                          return (
+                            <Link
+                              href={`/host/classes/${klass.id}/sessions/${s.id}/recap`}
+                              className="text-sm text-walnut transition-colors hover:text-iron"
+                            >
+                              {recap ? (recap.published_at ? "Recap ✓" : "Recap (draft)") : "Write recap"}
+                            </Link>
+                          );
+                        })()
+                      )}
+                      {!cancelled && !isPast && (
+                        <>
                           <Link
                             href={`/host/classes/${klass.id}/sessions/${s.id}`}
                             className="text-sm text-walnut transition-colors hover:text-iron"
@@ -105,9 +125,9 @@ export default async function EditClassPage({ params }: { params: { id: string }
                             Edit
                           </Link>
                           <CancelSessionButton classId={klass.id} sessionId={s.id} />
-                        </div>
-                      </div>
-                    )}
+                        </>
+                      )}
+                    </div>
                   </li>
                 );
               })}

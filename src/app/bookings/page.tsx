@@ -59,6 +59,15 @@ export default async function BookingsPage({ searchParams }: { searchParams: { b
     : { data: [] as { booking_id: string }[] };
   const reviewedBookingIds = new Set((reviewRows ?? []).map((r) => r.booking_id));
 
+  // recaps visible to this attendee (published + they booked) for their sessions
+  const sessionIdsForRecap = rows
+    .map((b) => (Array.isArray(b.sessions) ? b.sessions[0] : b.sessions)?.id)
+    .filter((v): v is string => Boolean(v));
+  const { data: recapRows } = sessionIdsForRecap.length
+    ? await supabase.from("recaps").select("session_id").in("session_id", sessionIdsForRecap)
+    : { data: [] as { session_id: string }[] };
+  const recapSessionIds = new Set((recapRows ?? []).map((r) => r.session_id));
+
   const now = Date.now();
   const upcoming = rows.filter((b) => {
     const s = Array.isArray(b.sessions) ? b.sessions[0] : b.sessions;
@@ -173,12 +182,22 @@ export default async function BookingsPage({ searchParams }: { searchParams: { b
                           {formatSessionDateTime(s.starts_at, s.timezone)} · {FORMAT_LABELS[s.format]}
                         </p>
                       </div>
-                      <Link
-                        href={`/review/${b.id}`}
-                        className="shrink-0 rounded border border-line bg-cream px-3 py-1.5 text-sm text-iron transition-colors hover:border-walnut"
-                      >
-                        {reviewed ? "Edit review" : "Leave a review"}
-                      </Link>
+                      <div className="flex shrink-0 items-center gap-3">
+                        {recapSessionIds.has(s.id) && (
+                          <Link
+                            href={`/recaps/${s.id}`}
+                            className="rounded border border-olive/30 bg-olive/10 px-3 py-1.5 text-sm text-olive-deep transition-colors hover:border-olive"
+                          >
+                            View recap
+                          </Link>
+                        )}
+                        <Link
+                          href={`/review/${b.id}`}
+                          className="rounded border border-line bg-cream px-3 py-1.5 text-sm text-iron transition-colors hover:border-walnut"
+                        >
+                          {reviewed ? "Edit review" : "Leave a review"}
+                        </Link>
+                      </div>
                     </li>
                   );
                 })}
