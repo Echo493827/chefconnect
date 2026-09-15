@@ -5,6 +5,7 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/ui";
 import { SKILL_LEVEL_LABELS } from "@/components/chef/chef-type";
+import { MessageTheChef } from "@/components/messages/message-the-chef";
 import { formatDuration, formatSessionDateTime, seatsLeftLabel } from "@/lib/format";
 import { ReviewList } from "@/components/reviews/review-list";
 import { RatingSummary } from "@/components/reviews/stars";
@@ -41,6 +42,11 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
   const found = await loadClass(params.slug, params.classSlug);
   if (!found) notFound();
   const { supabase, chef, klass } = found;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isOwner = Boolean(user && chef.user_id === user.id);
 
   // Upcoming, still-scheduled sessions, with the public (fuzzed) location info.
   const { data: sessionRows } = await supabase
@@ -88,6 +94,21 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
       </p>
       <h1 className="mt-1 font-display text-5xl leading-tight tracking-tight">{klass.title}</h1>
       {klass.summary && <p className="mt-3 max-w-prose text-lg text-walnut">{klass.summary}</p>}
+
+      {!isOwner && (
+        <div className="mt-4">
+          {user ? (
+            <MessageTheChef classId={klass.id} chefName={chef.business_name || "the chef"} />
+          ) : (
+            <a
+              href={`/login?next=/chefs/${chef.slug}/${klass.slug}`}
+              className="inline-block rounded border border-line bg-cream px-4 py-2 text-sm font-medium text-iron transition-colors hover:border-walnut"
+            >
+              Sign in to ask a question
+            </a>
+          )}
+        </div>
+      )}
       {reviewCount > 0 && <div className="mt-3"><RatingSummary average={reviewAvg} count={reviewCount} /></div>}
 
       {(klass.tags.length > 0 || klass.dietary_tags.length > 0) && (

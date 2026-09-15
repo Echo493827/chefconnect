@@ -310,6 +310,93 @@ export type Database = {
           },
         ]
       }
+      message_threads: {
+        Row: {
+          id: string
+          class_id: string
+          guest_id: string
+          chef_profile_id: string
+          last_message_at: string | null
+          guest_last_read_at: string | null
+          chef_last_read_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          class_id: string
+          guest_id: string
+          chef_profile_id: string
+          last_message_at?: string | null
+          guest_last_read_at?: string | null
+          chef_last_read_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          class_id?: string
+          guest_id?: string
+          chef_profile_id?: string
+          last_message_at?: string | null
+          guest_last_read_at?: string | null
+          chef_last_read_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_chef_profile_id_fkey"
+            columns: ["chef_profile_id"]
+            isOneToOne: false
+            referencedRelation: "chef_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          id: string
+          thread_id: string
+          sender_id: string
+          body: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          thread_id: string
+          sender_id: string
+          body: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          thread_id?: string
+          sender_id?: string
+          body?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           id: string
@@ -969,6 +1056,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_thread_participant: {
+        Args: {
+          p_thread_id: string
+        }
+        Returns: boolean
+      }
       is_class_published: {
         Args: {
           p_class_id: string
@@ -1033,6 +1126,12 @@ export type Database = {
           session_count: number
           distance_km: number | null
         }[]
+      }
+      start_thread: {
+        Args: {
+          p_class_id: string
+        }
+        Returns: string
       }
       trending_classes: {
         Args: {
