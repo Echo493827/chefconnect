@@ -10,6 +10,9 @@ function str(data: NotificationData, key: string): string | null {
 export function notificationHref(kind: string, data: NotificationData | null): string {
   const d = data ?? {};
   switch (kind) {
+    case "friend_request":
+    case "friend_accepted":
+      return "/friends";
     case "message": {
       const t = str(d, "thread_id");
       return t ? `/messages/${t}` : "/messages";

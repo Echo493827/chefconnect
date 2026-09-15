@@ -57,6 +57,9 @@ export async function SiteHeader() {
               <Link href="/messages" className="text-walnut transition-colors hover:text-iron">
                 Messages
               </Link>
+              <Link href="/friends" className="text-walnut transition-colors hover:text-iron">
+                Friends
+              </Link>
               <Link href={isChef ? "/host" : "/host/new"} className="text-walnut transition-colors hover:text-iron">
                 {isChef ? "Chef dashboard" : "Teach a class"}
               </Link>

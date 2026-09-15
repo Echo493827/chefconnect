@@ -257,6 +257,48 @@ export type Database = {
           },
         ]
       }
+      friendships: {
+        Row: {
+          id: string
+          requester_id: string
+          addressee_id: string
+          status: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          requester_id: string
+          addressee_id: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          requester_id?: string
+          addressee_id?: string
+          status?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friendships_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friendships_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locations: {
         Row: {
           id: string
@@ -962,6 +1004,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      are_friends: {
+        Args: {
+          p_other: string
+        }
+        Returns: boolean
+      }
       admin_set_chef_suspended: {
         Args: {
           p_chef_profile_id: string
@@ -981,6 +1029,13 @@ export type Database = {
           p_chef_profile_id: string
         }
         Returns: boolean
+      }
+      respond_friend_request: {
+        Args: {
+          p_friendship_id: string
+          p_accept: boolean
+        }
+        Returns: undefined
       }
       resolve_report: {
         Args: {
@@ -1126,6 +1181,12 @@ export type Database = {
           session_count: number
           distance_km: number | null
         }[]
+      }
+      send_friend_request: {
+        Args: {
+          p_target: string
+        }
+        Returns: undefined
       }
       start_thread: {
         Args: {
