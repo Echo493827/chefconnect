@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { RespondButtons, RemoveButton } from "@/components/friends/friend-buttons";
 import { FindPeople } from "@/components/friends/find-people";
+import { ActivityFeed } from "@/components/friends/activity-feed";
 import { PageShell, EmptyState } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -19,6 +20,9 @@ export default async function FriendsPage() {
     .from("friendships")
     .select("id, requester_id, addressee_id, status, requester:users!friendships_requester_id_fkey(display_name), addressee:users!friendships_addressee_id_fkey(display_name)")
     .order("updated_at", { ascending: false });
+
+  const { data: activity } = await supabase.rpc("friend_activity", { p_limit: 30 });
+  const feed = activity ?? [];
 
   const all = rows ?? [];
   const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? v[0] ?? null : v);
@@ -49,8 +53,19 @@ export default async function FriendsPage() {
     <PageShell>
       <h1 className="font-display text-4xl tracking-tight">Friends</h1>
 
-      {incoming.length > 0 && (
+      {feed.length > 0 && (
         <section className="mt-8">
+          <h2 className="font-display text-2xl">What your friends are up to</h2>
+          <div className="mt-3">
+            <ActivityFeed items={feed} />
+          </div>
+        </section>
+      )}
+
+      <div className="mt-12 border-t border-line pt-2" />
+
+      {incoming.length > 0 && (
+        <section className="mt-6">
           <h2 className="font-display text-2xl">Requests</h2>
           <ul className="mt-3 divide-y divide-line border-y border-line">
             {incoming.map((r) => (

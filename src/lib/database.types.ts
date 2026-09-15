@@ -1093,6 +1093,24 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      friend_activity: {
+        Args: {
+          p_limit?: number
+        }
+        Returns: {
+          kind: string
+          actor_id: string
+          actor_name: string | null
+          class_slug: string
+          class_title: string
+          cuisine: string
+          cover_image_url: string | null
+          chef_slug: string
+          session_starts_at: string
+          session_timezone: string
+          activity_at: string
+        }[]
+      }
       is_chef_of_class: {
         Args: {
           p_class_id: string
