@@ -25,7 +25,7 @@ export default async function NewClassPage() {
       <h1 className="mt-3 font-display text-4xl tracking-tight">Create a class</h1>
       <p className="mt-2 text-walnut">This saves as a draft. You&rsquo;ll add dates and publish it on the next screen.</p>
       <div className="mt-8">
-        <ClassForm />
+        <ClassForm userId={user.id} />
       </div>
     </PageShell>
   );

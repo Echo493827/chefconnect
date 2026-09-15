@@ -25,7 +25,7 @@ export default async function BecomeChefPage() {
         then create your first class. You can keep it as a draft until it&rsquo;s ready to share.
       </p>
       <div className="mt-8">
-        <ChefProfileForm />
+        <ChefProfileForm userId={user.id} />
       </div>
     </PageShell>
   );

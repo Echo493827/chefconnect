@@ -32,7 +32,7 @@ export default async function EditChefProfilePage() {
         .
       </p>
       <div className="mt-8">
-        <ChefProfileForm profile={profile} />
+        <ChefProfileForm profile={profile} userId={user.id} />
       </div>
     </PageShell>
   );

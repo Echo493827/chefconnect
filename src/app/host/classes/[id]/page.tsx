@@ -119,7 +119,7 @@ export default async function EditClassPage({ params }: { params: { id: string }
       <section className="mt-12 border-t border-line pt-8">
         <h2 className="font-display text-2xl">Class details</h2>
         <div className="mt-4">
-          <ClassForm klass={klass} />
+          <ClassForm klass={klass} userId={user.id} />
         </div>
       </section>
     </PageShell>

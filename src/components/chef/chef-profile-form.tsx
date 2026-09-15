@@ -5,13 +5,14 @@ import { createChefProfile, updateChefProfile, type FormState } from "@/lib/chef
 import { SubmitButton } from "@/components/auth/submit-button";
 import { fieldClass, labelClass } from "@/components/auth/form-styles";
 import { CHEF_TYPE_OPTIONS } from "@/components/chef/chef-type";
+import { CoverImageUpload } from "@/components/media/image-upload";
 import type { Database } from "@/lib/database.types";
 
 type ChefProfile = Database["public"]["Tables"]["chef_profiles"]["Row"];
 
 const initialState: FormState = { error: null, message: null };
 
-export function ChefProfileForm({ profile }: { profile?: ChefProfile }) {
+export function ChefProfileForm({ profile, userId }: { profile?: ChefProfile; userId: string }) {
   const editing = Boolean(profile);
   const [state, formAction] = useFormState(editing ? updateChefProfile : createChefProfile, initialState);
 
@@ -19,6 +20,8 @@ export function ChefProfileForm({ profile }: { profile?: ChefProfile }) {
 
   return (
     <form action={formAction} className="space-y-6">
+      <CoverImageUpload name="cover_image_url" userId={userId} defaultUrl={profile?.cover_image_url ?? undefined} label="Cover photo (optional)" />
+
       <div>
         <label htmlFor="chef_type" className={labelClass}>
           What kind of chef are you?

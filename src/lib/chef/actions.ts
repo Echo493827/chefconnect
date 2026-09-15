@@ -85,6 +85,7 @@ export async function createChefProfile(_prev: FormState, formData: FormData): P
     about: about || null,
     specialties,
     social_links: socialLinks,
+    cover_image_url: String(formData.get("cover_image_url") ?? "").trim() || null,
   });
 
   if (error) {
@@ -131,6 +132,7 @@ export async function updateChefProfile(_prev: FormState, formData: FormData): P
       about: about || null,
       specialties,
       social_links: socialLinks,
+      cover_image_url: String(formData.get("cover_image_url") ?? "").trim() || null,
       is_accepting_bookings: acceptingBookings,
     })
     .eq("user_id", user.id);
@@ -161,7 +163,9 @@ function readClassFields(formData: FormData) {
   const dietaryTags = toList(formData.get("dietary_tags"));
   const whatYouLearn = toList(formData.get("what_you_learn"), 30);
   const whatToBring = toList(formData.get("what_to_bring"), 30);
-  return { title, cuisine, summary, description, skillLevel, durationRaw, tags, dietaryTags, whatYouLearn, whatToBring };
+  const coverImageUrl = String(formData.get("cover_image_url") ?? "").trim();
+  const galleryUrls = formData.getAll("gallery_urls").map((v) => String(v).trim()).filter(Boolean).slice(0, 8);
+  return { title, cuisine, summary, description, skillLevel, durationRaw, tags, dietaryTags, whatYouLearn, whatToBring, coverImageUrl, galleryUrls };
 }
 
 function validateClass(f: ReturnType<typeof readClassFields>): string | null {
@@ -211,6 +215,8 @@ export async function createClass(_prev: FormState, formData: FormData): Promise
       dietary_tags: f.dietaryTags,
       what_you_learn: f.whatYouLearn,
       what_to_bring: f.whatToBring,
+      cover_image_url: f.coverImageUrl || null,
+      gallery_urls: f.galleryUrls,
       status: "draft",
     })
     .select("id")
@@ -243,6 +249,8 @@ export async function updateClass(classId: string, _prev: FormState, formData: F
       dietary_tags: f.dietaryTags,
       what_you_learn: f.whatYouLearn,
       what_to_bring: f.whatToBring,
+      cover_image_url: f.coverImageUrl || null,
+      gallery_urls: f.galleryUrls,
     })
     .eq("id", classId);
 

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/ui";
 import { CHEF_TYPE_LABELS, SKILL_LEVEL_LABELS } from "@/components/chef/chef-type";
@@ -59,6 +60,11 @@ export default async function ChefProfilePage({ params }: { params: { slug: stri
 
   return (
     <PageShell width="lg">
+      {chef.cover_image_url && (
+        <div className="relative mb-6 aspect-[16/9] w-full overflow-hidden rounded-lg border border-line sm:aspect-[3/1]">
+          <Image src={chef.cover_image_url} alt="" fill sizes="(max-width: 1024px) 100vw, 64rem" className="object-cover" priority />
+        </div>
+      )}
       <p className="text-sm text-walnut">{CHEF_TYPE_LABELS[chef.chef_type]}</p>
       <h1 className="mt-1 font-display text-5xl tracking-tight">{chef.business_name || "Chef"}</h1>
       {chef.headline && <p className="mt-3 max-w-prose text-lg text-walnut">{chef.headline}</p>}

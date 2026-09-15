@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/ui";
 import { SKILL_LEVEL_LABELS } from "@/components/chef/chef-type";
@@ -76,6 +77,12 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
         ← {chef.business_name || "Chef"}
       </Link>
 
+      {klass.cover_image_url && (
+        <div className="relative mt-6 aspect-[16/9] w-full overflow-hidden rounded-lg border border-line">
+          <Image src={klass.cover_image_url} alt={klass.title} fill sizes="(max-width: 1024px) 100vw, 64rem" className="object-cover" priority />
+        </div>
+      )}
+
       <p className="mt-4 text-sm text-walnut">
         {klass.cuisine} · {SKILL_LEVEL_LABELS[klass.skill_level]} · {formatDuration(klass.duration_minutes)} · {price}
       </p>
@@ -101,6 +108,18 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
       <div className="mt-10 grid gap-10 md:grid-cols-[1fr_20rem]">
         <div className="max-w-prose">
           {klass.description && <div className="whitespace-pre-line leading-relaxed text-iron">{klass.description}</div>}
+
+          {klass.gallery_urls.length > 0 && (
+            <section className="mt-8">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {klass.gallery_urls.map((u) => (
+                  <div key={u} className="relative aspect-square overflow-hidden rounded border border-line">
+                    <Image src={u} alt="" fill sizes="(max-width: 640px) 50vw, 20rem" className="object-cover" />
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
           {klass.what_you_learn.length > 0 && (
             <section className="mt-8">

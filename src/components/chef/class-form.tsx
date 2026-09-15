@@ -5,13 +5,14 @@ import { createClass, updateClass, type FormState } from "@/lib/chef/actions";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { fieldClass, labelClass } from "@/components/auth/form-styles";
 import { SKILL_LEVEL_OPTIONS } from "@/components/chef/chef-type";
+import { CoverImageUpload, GalleryUpload } from "@/components/media/image-upload";
 import type { Database } from "@/lib/database.types";
 
 type ClassRow = Database["public"]["Tables"]["classes"]["Row"];
 
 const initialState: FormState = { error: null, message: null };
 
-export function ClassForm({ klass }: { klass?: ClassRow }) {
+export function ClassForm({ klass, userId }: { klass?: ClassRow; userId: string }) {
   const editing = Boolean(klass);
   // For edits, bind the class id into the action; for new classes, use createClass.
   const action = editing ? updateClass.bind(null, klass!.id) : createClass;
@@ -19,6 +20,8 @@ export function ClassForm({ klass }: { klass?: ClassRow }) {
 
   return (
     <form action={formAction} className="space-y-6">
+      <CoverImageUpload name="cover_image_url" userId={userId} defaultUrl={klass?.cover_image_url ?? undefined} label="Cover photo" />
+
       <div>
         <label htmlFor="title" className={labelClass}>
           Class title
@@ -169,6 +172,8 @@ export function ClassForm({ klass }: { klass?: ClassRow }) {
           className={`${fieldClass} resize-y`}
         />
       </div>
+
+      <GalleryUpload name="gallery_urls" userId={userId} defaultUrls={klass?.gallery_urls ?? []} />
 
       {state.error && (
         <p role="alert" className="text-sm text-paprika">
