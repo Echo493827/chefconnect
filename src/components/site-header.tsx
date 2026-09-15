@@ -8,6 +8,7 @@ export async function SiteHeader() {
   let displayName: string | null = null;
   let role: string | null = null;
   let isChef = false;
+  let unreadCount = 0;
 
   try {
     const supabase = createClient();
@@ -20,6 +21,11 @@ export async function SiteHeader() {
       role = profile?.role ?? "attendee";
       const { data: chef } = await supabase.from("chef_profiles").select("id").eq("user_id", user.id).maybeSingle();
       isChef = Boolean(chef);
+      const { count } = await supabase
+        .from("notifications")
+        .select("id", { head: true, count: "exact" })
+        .is("read_at", null);
+      unreadCount = count ?? 0;
     }
   } catch {
     // fall through to the signed-out header
@@ -44,6 +50,21 @@ export async function SiteHeader() {
               </Link>
               <Link href={isChef ? "/host" : "/host/new"} className="text-walnut transition-colors hover:text-iron">
                 {isChef ? "Chef dashboard" : "Teach a class"}
+              </Link>
+              <Link
+                href="/notifications"
+                aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
+                className="relative text-walnut transition-colors hover:text-iron"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-paprika px-1 text-[10px] font-medium text-cream">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </Link>
               <Link href="/account" className="max-w-[16rem] truncate transition-colors hover:text-walnut">
                 {displayName}
