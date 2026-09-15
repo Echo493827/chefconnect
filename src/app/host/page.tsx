@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageShell, StatusPill, ButtonLink, EmptyState } from "@/components/ui";
 import { CHEF_TYPE_LABELS } from "@/components/chef/chef-type";
+import { RatingSummary } from "@/components/reviews/stars";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "Chef dashboard" };
@@ -36,6 +37,7 @@ export default async function HostDashboard() {
             {profile.business_name || (user.user_metadata?.display_name as string) || "Your kitchen"}
           </h1>
           {profile.headline && <p className="mt-2 max-w-prose text-walnut">{profile.headline}</p>}
+          {profile.rating_count > 0 && <div className="mt-2"><RatingSummary average={profile.rating_avg} count={profile.rating_count} /></div>}
           <p className="mt-3 text-sm text-walnut">
             {profile.is_suspended ? (
               <span className="text-paprika">Your account is under review and hidden from the public.</span>
@@ -53,6 +55,9 @@ export default async function HostDashboard() {
           </p>
         </div>
         <div className="flex gap-3">
+          <ButtonLink href="/host/reviews" variant="secondary">
+            Reviews
+          </ButtonLink>
           <ButtonLink href="/host/locations" variant="secondary">
             Locations
           </ButtonLink>

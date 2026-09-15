@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: "My bookings" };
 
 const FORMAT_LABELS: Record<string, string> = { in_person: "In person", virtual: "Online", hybrid: "In person + online" };
 
-export default async function BookingsPage({ searchParams }: { searchParams: { booked?: string } }) {
+export default async function BookingsPage({ searchParams }: { searchParams: { booked?: string; reviewed?: string } }) {
   const supabase = createClient();
   const {
     data: { user },
@@ -52,6 +52,13 @@ export default async function BookingsPage({ searchParams }: { searchParams: { b
   const joinBySession = new Map((secrets ?? []).map((s) => [s.session_id, s.virtual_join_url]));
   const addressByLocation = new Map((addresses ?? []).map((a) => [a.location_id, a]));
 
+  // which of these bookings already have a review, so we show Edit vs Leave
+  const bookingIds = rows.map((b) => b.id);
+  const { data: reviewRows } = bookingIds.length
+    ? await supabase.from("reviews").select("booking_id").in("booking_id", bookingIds)
+    : { data: [] as { booking_id: string }[] };
+  const reviewedBookingIds = new Set((reviewRows ?? []).map((r) => r.booking_id));
+
   const now = Date.now();
   const upcoming = rows.filter((b) => {
     const s = Array.isArray(b.sessions) ? b.sessions[0] : b.sessions;
@@ -65,6 +72,12 @@ export default async function BookingsPage({ searchParams }: { searchParams: { b
   return (
     <PageShell width="lg">
       <h1 className="font-display text-4xl tracking-tight">My bookings</h1>
+
+      {searchParams.reviewed && (
+        <p className="mt-4 rounded border border-olive/30 bg-olive/10 px-4 py-3 text-olive-deep">
+          Thanks for reviewing — your feedback helps other cooks choose.
+        </p>
+      )}
 
       {searchParams.booked && upcoming.length > 0 && (
         <p className="mt-4 rounded border border-olive/30 bg-olive/10 px-4 py-3 text-olive-deep">
@@ -151,12 +164,21 @@ export default async function BookingsPage({ searchParams }: { searchParams: { b
                   const s = Array.isArray(b.sessions) ? b.sessions[0] : b.sessions;
                   if (!s) return null;
                   const klass = Array.isArray(s.classes) ? s.classes[0] : s.classes;
+                  const reviewed = reviewedBookingIds.has(b.id);
                   return (
-                    <li key={b.id} className="py-4">
-                      <p className="font-medium">{klass?.title ?? "Class"}</p>
-                      <p className="text-sm text-walnut">
-                        {formatSessionDateTime(s.starts_at, s.timezone)} · {FORMAT_LABELS[s.format]}
-                      </p>
+                    <li key={b.id} className="flex items-center justify-between gap-4 py-4">
+                      <div>
+                        <p className="font-medium">{klass?.title ?? "Class"}</p>
+                        <p className="text-sm text-walnut">
+                          {formatSessionDateTime(s.starts_at, s.timezone)} · {FORMAT_LABELS[s.format]}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/review/${b.id}`}
+                        className="shrink-0 rounded border border-line bg-cream px-3 py-1.5 text-sm text-iron transition-colors hover:border-walnut"
+                      >
+                        {reviewed ? "Edit review" : "Leave a review"}
+                      </Link>
                     </li>
                   );
                 })}

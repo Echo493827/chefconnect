@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/ui";
 import { SKILL_LEVEL_LABELS } from "@/components/chef/chef-type";
 import { formatDuration, formatSessionDateTime, seatsLeftLabel } from "@/lib/format";
+import { ReviewList } from "@/components/reviews/review-list";
+import { RatingSummary } from "@/components/reviews/stars";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +51,23 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
     .order("starts_at", { ascending: true });
 
   const sessions = sessionRows ?? [];
+
+  const { data: reviewRows } = await supabase
+    .from("reviews")
+    .select("id, rating, body, chef_response, created_at, users(display_name)")
+    .eq("class_id", klass.id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  const reviews = (reviewRows ?? []).map((r) => ({
+    id: r.id,
+    rating: r.rating,
+    body: r.body,
+    chef_response: r.chef_response,
+    created_at: r.created_at,
+    reviewer_name: (Array.isArray(r.users) ? r.users[0] : r.users)?.display_name ?? null,
+  }));
+  const reviewCount = reviews.length;
+  const reviewAvg = reviewCount ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviewCount : 0;
   const price = klass.price_cents === 0 ? "Free" : `$${(klass.price_cents / 100).toFixed(2)}`;
 
   return (
@@ -62,6 +81,7 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
       </p>
       <h1 className="mt-1 font-display text-5xl leading-tight tracking-tight">{klass.title}</h1>
       {klass.summary && <p className="mt-3 max-w-prose text-lg text-walnut">{klass.summary}</p>}
+      {reviewCount > 0 && <div className="mt-3"><RatingSummary average={reviewAvg} count={reviewCount} /></div>}
 
       {(klass.tags.length > 0 || klass.dietary_tags.length > 0) && (
         <ul className="mt-5 flex flex-wrap gap-2">
@@ -163,6 +183,18 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
           </div>
         </aside>
       </div>
+
+      {reviewCount > 0 && (
+        <section className="mt-12 border-t border-line pt-8">
+          <div className="flex items-baseline gap-3">
+            <h2 className="font-display text-2xl">Reviews</h2>
+            <RatingSummary average={reviewAvg} count={reviewCount} />
+          </div>
+          <div className="mt-4">
+            <ReviewList reviews={reviews} />
+          </div>
+        </section>
+      )}
     </PageShell>
   );
 }

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/ui";
 import { CHEF_TYPE_LABELS, SKILL_LEVEL_LABELS } from "@/components/chef/chef-type";
+import { ReviewList } from "@/components/reviews/review-list";
+import { RatingSummary } from "@/components/reviews/stars";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +38,22 @@ export default async function ChefProfilePage({ params }: { params: { slug: stri
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
+  const { data: reviewRows } = await supabase
+    .from("reviews")
+    .select("id, rating, body, chef_response, created_at, users(display_name), classes(title)")
+    .eq("chef_profile_id", chef.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const reviews = (reviewRows ?? []).map((r) => ({
+    id: r.id,
+    rating: r.rating,
+    body: r.body,
+    chef_response: r.chef_response,
+    created_at: r.created_at,
+    reviewer_name: (Array.isArray(r.users) ? r.users[0] : r.users)?.display_name ?? null,
+    class_title: (Array.isArray(r.classes) ? r.classes[0] : r.classes)?.title ?? null,
+  }));
+
   const social = (chef.social_links ?? {}) as Record<string, string>;
   const list = classes ?? [];
 
@@ -44,6 +62,7 @@ export default async function ChefProfilePage({ params }: { params: { slug: stri
       <p className="text-sm text-walnut">{CHEF_TYPE_LABELS[chef.chef_type]}</p>
       <h1 className="mt-1 font-display text-5xl tracking-tight">{chef.business_name || "Chef"}</h1>
       {chef.headline && <p className="mt-3 max-w-prose text-lg text-walnut">{chef.headline}</p>}
+      {chef.rating_count > 0 && <div className="mt-3"><RatingSummary average={chef.rating_avg} count={chef.rating_count} /></div>}
 
       {chef.specialties.length > 0 && (
         <ul className="mt-5 flex flex-wrap gap-2">
@@ -100,6 +119,18 @@ export default async function ChefProfilePage({ params }: { params: { slug: stri
           )}
         </div>
       </section>
+
+      {reviews.length > 0 && (
+        <section className="mt-12 border-t border-line pt-8">
+          <div className="flex items-baseline gap-3">
+            <h2 className="font-display text-2xl">Reviews</h2>
+            <RatingSummary average={chef.rating_avg} count={chef.rating_count} />
+          </div>
+          <div className="mt-4">
+            <ReviewList reviews={reviews} />
+          </div>
+        </section>
+      )}
     </PageShell>
   );
 }

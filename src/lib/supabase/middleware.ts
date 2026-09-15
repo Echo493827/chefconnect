@@ -4,7 +4,7 @@ import { readPublicSupabaseEnv } from "@/lib/env";
 
 // Route prefixes that require a signed-in user. Add to this as pages are built
 // (e.g. "/host" when chef tools land); unauthenticated visitors are sent to /login.
-const PROTECTED_PREFIXES: string[] = ["/account", "/host", "/admin", "/bookings", "/book"];
+const PROTECTED_PREFIXES: string[] = ["/account", "/host", "/admin", "/bookings", "/book", "/review"];
 
 // Refreshes the Supabase session cookie on every request so Server Components
 // never see a stale or expired session, and enforces PROTECTED_PREFIXES.
