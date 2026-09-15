@@ -1034,6 +1034,33 @@ export type Database = {
           distance_km: number | null
         }[]
       }
+      trending_classes: {
+        Args: {
+          p_limit?: number
+        }
+        Returns: {
+          class_id: string
+          class_slug: string
+          title: string
+          summary: string | null
+          cuisine: string
+          skill_level: Database["public"]["Enums"]["skill_level"]
+          duration_minutes: number
+          price_cents: number
+          cover_image_url: string | null
+          chef_slug: string
+          chef_name: string | null
+          next_session_id: string
+          next_starts_at: string
+          next_timezone: string
+          next_format: Database["public"]["Enums"]["session_format"]
+          city: string | null
+          neighborhood: string | null
+          seats_left: number
+          session_count: number
+          distance_km: number | null
+        }[]
+      }
       upsert_location: {
         Args: {
           p_label: string

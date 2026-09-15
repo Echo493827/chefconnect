@@ -43,6 +43,9 @@ export async function SiteHeader() {
               <Link href="/" className="text-walnut transition-colors hover:text-iron">
                 Browse
               </Link>
+              <Link href="/trending" className="text-walnut transition-colors hover:text-iron">
+                Trending
+              </Link>
               {role === "admin" && (
                 <Link href="/admin" className="text-walnut transition-colors hover:text-iron">
                   Moderation
@@ -77,6 +80,9 @@ export async function SiteHeader() {
             <>
               <Link href="/" className="text-walnut transition-colors hover:text-iron">
                 Browse
+              </Link>
+              <Link href="/trending" className="text-walnut transition-colors hover:text-iron">
+                Trending
               </Link>
               <Link href="/login" className="transition-colors hover:text-walnut">
                 Sign in
