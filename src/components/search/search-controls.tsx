@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { fieldClass, labelClass } from "@/components/auth/form-styles";
+import { LocationAutocomplete, type PlacePick } from "@/components/search/location-autocomplete";
 
 export type SearchValues = {
   q: string;
@@ -20,6 +21,7 @@ const FORMAT_OPTS: [string, string][] = [
   ["in_person", "In person"],
   ["virtual", "Online"],
 ];
+const BROAD_TYPES = new Set(["country", "region", "place", "district", "locality"]);
 const DIETARY = ["vegetarian", "vegan", "halal", "gluten-free"];
 const RADII: [string, string][] = [
   ["10", "Within 10 km"],
@@ -31,6 +33,7 @@ const RADII: [string, string][] = [
 export function SearchControls({ initial }: { initial: SearchValues }) {
   const router = useRouter();
   const [v, setV] = useState<SearchValues>(initial);
+  const [place, setPlace] = useState<PlacePick | null>(null);
   const [showFilters, setShowFilters] = useState(
     Boolean(initial.format || initial.skill || initial.diet.length || (initial.near && initial.radius !== "40")),
   );
@@ -50,10 +53,24 @@ export function SearchControls({ initial }: { initial: SearchValues }) {
     const params = new URLSearchParams();
     if (v.q.trim()) params.set("q", v.q.trim());
     if (v.near.trim()) params.set("near", v.near.trim());
+    // If a place was picked, carry its geography so the page can search the right
+    // scale: a broad place (country/city) searches its bounding box; a precise
+    // place searches a radius around the point.
+    if (place) {
+      const broad = place.bbox && place.placeType && BROAD_TYPES.has(place.placeType);
+      if (broad && place.bbox) {
+        params.set("bbox", place.bbox.join(","));
+      } else {
+        params.set("lat", String(place.lat));
+        params.set("lng", String(place.lng));
+        if (v.radius && v.radius !== "40") params.set("radius", v.radius);
+      }
+    } else if (v.near.trim() && v.radius && v.radius !== "40") {
+      params.set("radius", v.radius);
+    }
     if (v.from) params.set("from", v.from);
     if (v.to) params.set("to", v.to);
     if (v.format) params.set("format", v.format);
-    if (v.near.trim() && v.radius && v.radius !== "40") params.set("radius", v.radius);
     if (v.skill) params.set("skill", v.skill);
     if (v.diet.length) params.set("diet", v.diet.join(","));
     const qs = params.toString();
@@ -81,14 +98,11 @@ export function SearchControls({ initial }: { initial: SearchValues }) {
           <label htmlFor="near" className={labelClass}>
             Where
           </label>
-          <input
-            id="near"
-            type="text"
+          <LocationAutocomplete
             value={v.near}
-            onChange={(e) => set("near", e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Rome, Italy (or anywhere)"
-            className={fieldClass}
+            onChange={(text) => set("near", text)}
+            onSelect={setPlace}
+            onSubmit={submit}
           />
         </div>
         <div className="flex items-end">

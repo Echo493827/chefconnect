@@ -1006,6 +1006,10 @@ export type Database = {
           p_max_price_cents?: number
           p_skill?: Database["public"]["Enums"]["skill_level"]
           p_limit?: number
+          p_min_lat?: number
+          p_min_lng?: number
+          p_max_lat?: number
+          p_max_lng?: number
         }
         Returns: {
           class_id: string

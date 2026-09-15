@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { geocodeAddress } from "@/lib/geocode";
+import { geocodeAddress, isBroadPlaceType } from "@/lib/geocode";
 import { SearchControls, type SearchValues } from "@/components/search/search-controls";
 import { ClassCard } from "@/components/search/class-card";
 import type { Database } from "@/lib/database.types";
@@ -21,6 +21,9 @@ type SearchParams = {
   radius?: string;
   skill?: string;
   diet?: string;
+  lat?: string;
+  lng?: string;
+  bbox?: string;
 };
 
 const SESSION_FORMATS = ["in_person", "virtual", "hybrid"] as const;
@@ -31,6 +34,13 @@ function dayStartIso(date: string): string | undefined {
 }
 function dayEndIso(date: string): string | undefined {
   return /^\d{4}-\d{2}-\d{2}$/.test(date) ? `${date}T23:59:59Z` : undefined;
+}
+
+function parseBbox(raw: string | undefined): [number, number, number, number] | null {
+  if (!raw) return null;
+  const p = raw.split(",").map(Number);
+  if (p.length !== 4 || p.some((n) => !Number.isFinite(n))) return null;
+  return [p[0], p[1], p[2], p[3]] as [number, number, number, number];
 }
 
 export default async function HomePage({ searchParams }: { searchParams: SearchParams }) {
@@ -49,21 +59,39 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
   const radius = searchParams.radius ?? "40";
   const diet = (searchParams.diet ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 
-  let center: { lat: number; lng: number } | null = null;
-  let placeNotFound = false;
-  if (near) {
-    const geo = await geocodeAddress(near);
-    if (geo) center = { lat: geo.lat, lng: geo.lng };
-    else placeNotFound = true;
-  }
-
   const radiusKm = Number(radius) || 40;
+
+  // Resolve the search location. Priority: a bounding box picked from
+  // autocomplete (broad place, area search) > a point picked from autocomplete
+  // (precise place, radius search) > free text typed, which we geocode here and
+  // treat as an area if it's a country/city, otherwise a radius around the point.
+  let bbox: [number, number, number, number] | null = parseBbox(searchParams.bbox);
+  let center: { lat: number; lng: number } | null =
+    searchParams.lat && searchParams.lng && Number.isFinite(Number(searchParams.lat)) && Number.isFinite(Number(searchParams.lng))
+      ? { lat: Number(searchParams.lat), lng: Number(searchParams.lng) }
+      : null;
+  let placeNotFound = false;
+
+  if (near && !bbox && !center) {
+    const geo = await geocodeAddress(near);
+    if (geo) {
+      if (geo.bbox && isBroadPlaceType(geo.placeType)) bbox = geo.bbox;
+      else center = { lat: geo.lat, lng: geo.lng };
+    } else {
+      placeNotFound = true;
+    }
+  }
 
   const { data: results, error } = await supabase.rpc("search_classes", {
     p_query: q || undefined,
-    p_lat: center?.lat,
-    p_lng: center?.lng,
-    p_radius_km: center ? radiusKm : undefined,
+    // area (bounding-box) search takes priority; otherwise radius around a point
+    p_min_lng: bbox ? bbox[0] : undefined,
+    p_min_lat: bbox ? bbox[1] : undefined,
+    p_max_lng: bbox ? bbox[2] : undefined,
+    p_max_lat: bbox ? bbox[3] : undefined,
+    p_lat: !bbox && center ? center.lat : undefined,
+    p_lng: !bbox && center ? center.lng : undefined,
+    p_radius_km: !bbox && center ? radiusKm : undefined,
     p_date_from: from ? dayStartIso(from) : undefined,
     p_date_to: to ? dayEndIso(to) : undefined,
     p_format: format || undefined,
@@ -76,7 +104,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
   const initial: SearchValues = { q, near, from, to, format, radius, skill, diet };
 
   let heading = "Find a cooking class";
-  if (near && center) heading = q ? `\u201C${q}\u201D near ${near}` : `Cooking classes near ${near}`;
+  if (near && (center || bbox)) heading = q ? `\u201C${q}\u201D in ${near}` : `Cooking classes in ${near}`;
   else if (q) heading = `Results for \u201C${q}\u201D`;
   else if (hasFilters) heading = "Matching classes";
 
