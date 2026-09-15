@@ -55,7 +55,7 @@ export function LocationForm({
           className={fieldClass}
         />
         <p className="mt-1.5 text-sm text-walnut">
-          Kept private. Students only see the neighborhood until they book — then they get the exact address.
+          Kept private. Students only see the neighborhood until they book. Then they get the exact address.
         </p>
       </div>
 

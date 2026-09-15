@@ -17,7 +17,7 @@ export function AttachmentsInput({ name, defaultValue = [] }: { name: string; de
   return (
     <div>
       <span className={labelClass}>
-        Attachments <span className="text-walnut/60">(links to recipes, etc. — optional)</span>
+        Attachments <span className="text-walnut/60">(links to recipes, etc.; optional)</span>
       </span>
       <input type="hidden" name={name} value={JSON.stringify(rows.filter((r) => r.label && r.url))} />
       <div className="mt-1.5 space-y-2">

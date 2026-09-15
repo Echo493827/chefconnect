@@ -87,7 +87,7 @@ export function SearchControls({ initial }: { initial: SearchValues }) {
             value={v.near}
             onChange={(e) => set("near", e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="Rome, Italy — or anywhere"
+            placeholder="Rome, Italy (or anywhere)"
             className={fieldClass}
           />
         </div>

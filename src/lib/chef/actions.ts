@@ -170,7 +170,7 @@ function readClassFields(formData: FormData) {
 
 function validateClass(f: ReturnType<typeof readClassFields>): string | null {
   if (f.title.length < 3 || f.title.length > 120) return "Give your class a title between 3 and 120 characters.";
-  if (!f.cuisine) return "Add a cuisine — it's how people find your class.";
+  if (!f.cuisine) return "Add a cuisine. It's how people find your class.";
   if (!SKILL_LEVELS.includes(f.skillLevel)) return "Pick a skill level.";
   if (!Number.isFinite(f.durationRaw) || f.durationRaw < 15 || f.durationRaw > 720) {
     return "Set a duration between 15 and 720 minutes.";

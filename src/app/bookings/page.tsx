@@ -84,13 +84,13 @@ export default async function BookingsPage({ searchParams }: { searchParams: { b
 
       {searchParams.reviewed && (
         <p className="mt-4 rounded border border-olive/30 bg-olive/10 px-4 py-3 text-olive-deep">
-          Thanks for reviewing — your feedback helps other cooks choose.
+          Thanks for reviewing. Your feedback helps other cooks choose.
         </p>
       )}
 
       {searchParams.booked && upcoming.length > 0 && (
         <p className="mt-4 rounded border border-olive/30 bg-olive/10 px-4 py-3 text-olive-deep">
-          You&rsquo;re booked. The details below — including where to go — are now yours.
+          You&rsquo;re booked. The details below, including where to go, are now yours.
         </p>
       )}
 
@@ -155,7 +155,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: { b
                             </a>
                           </>
                         ) : (
-                          <p className="text-walnut">The chef hasn&rsquo;t posted a join link yet — check back before the session.</p>
+                          <p className="text-walnut">The chef hasn&rsquo;t posted a join link yet. Check back before the session.</p>
                         )}
                       </div>
                     </li>

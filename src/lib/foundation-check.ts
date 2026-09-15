@@ -72,7 +72,7 @@ export async function runFoundationCheck(): Promise<FoundationReport> {
   // Probe as a genuinely anonymous visitor: a fresh client with no session, NOT
   // the caller's logged-in one. A chef viewing this page can legitimately see
   // their own address, so using their session here would raise a false alarm.
-  // As anon, this table must return zero rows and no error — an error means
+  // As anon, this table must return zero rows and no error; an error means
   // grants are off, rows mean RLS is off.
   const anon = createAnonClient(env.url, env.publishableKey, { auth: { persistSession: false } });
   const addresses = await anon.from("location_addresses").select("location_id", { head: true, count: "exact" });

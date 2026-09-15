@@ -21,7 +21,7 @@ export default async function BecomeChefPage() {
     <PageShell>
       <h1 className="font-display text-4xl tracking-tight">Teach a class</h1>
       <p className="mt-2 max-w-prose leading-relaxed text-walnut">
-        Anyone can teach on ChefConnect — home cooks, restaurant chefs, creators, schools. Set up your chef profile,
+        Anyone can teach on ChefConnect: home cooks, restaurant chefs, creators, schools. Set up your chef profile,
         then create your first class. You can keep it as a draft until it&rsquo;s ready to share.
       </p>
       <div className="mt-8">

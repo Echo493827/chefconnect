@@ -88,7 +88,7 @@ export async function signUp(_prev: AuthFormState, formData: FormData): Promise<
 
   return {
     error: null,
-    message: "Almost there — check your email and open the confirmation link to finish creating your account.",
+    message: "Almost there. Check your email and open the confirmation link to finish creating your account.",
   };
 }
 

@@ -126,7 +126,7 @@ export function SessionForm({
                 <option value="">Choose a location…</option>
                 {locations.map((l) => (
                   <option key={l.id} value={l.id}>
-                    {l.label} — {l.city}
+                    {l.label} ({l.city})
                   </option>
                 ))}
               </select>

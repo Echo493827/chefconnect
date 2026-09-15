@@ -62,7 +62,7 @@ export default async function BookPage({ params }: { params: { sessionId: string
   if (chef.user_id === user.id) {
     return (
       <Frame>
-        <p className="rounded border border-line bg-cream/60 p-4 text-walnut">This is your class — you can&rsquo;t book it.</p>
+        <p className="rounded border border-line bg-cream/60 p-4 text-walnut">This is your class, so you can&rsquo;t book it.</p>
       </Frame>
     );
   }

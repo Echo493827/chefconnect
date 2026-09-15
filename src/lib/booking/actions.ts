@@ -39,7 +39,7 @@ export async function createBooking(sessionId: string, _prev: FormState, formDat
   }
   const waiverVersion = String(formData.get("waiver_version") ?? "").trim();
   if (!waiverVersion) {
-    return { error: "Something went out of date — refresh the page and try again." };
+    return { error: "Something went out of date. Refresh the page and try again." };
   }
 
   const h = headers();
@@ -63,7 +63,7 @@ export async function createBooking(sessionId: string, _prev: FormState, formDat
       return { error: "This session is no longer open for booking." };
     }
     if (msg.includes("out of date")) {
-      return { error: "The waiver was updated — refresh the page and accept the current one." };
+      return { error: "The waiver was updated. Refresh the page and accept the current one." };
     }
     if (msg.includes("own session")) {
       return { error: "You can't book your own class." };

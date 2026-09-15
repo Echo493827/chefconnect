@@ -69,7 +69,7 @@ export default async function EditClassPage({ params }: { params: { id: string }
               . Add dates below so people can book.
             </>
           ) : klass.status === "draft" ? (
-            "This class is a draft — only you can see it. Publish when you're ready to share it."
+            "This class is a draft, so only you can see it. Publish when you're ready to share it."
           ) : (
             "This class is archived and hidden from the public. Switch it back to draft to work on it again."
           )}

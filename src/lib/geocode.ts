@@ -75,7 +75,7 @@ export async function geocodeAddress(address: string): Promise<GeocodeResult | n
   try {
     return token ? await geocodeMapbox(trimmed, token) : await geocodeNominatim(trimmed);
   } catch {
-    // network error, timeout, or bad response — treat as "couldn't find it"
+    // network error, timeout, or bad response; treat as "couldn't find it"
     return null;
   }
 }

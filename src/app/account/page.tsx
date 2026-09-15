@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 import { signOut } from "@/lib/auth/actions";
 import { ProfileForm } from "@/components/account/profile-form";
 
@@ -54,7 +55,13 @@ export default async function AccountPage() {
         </div>
       </section>
 
-      <section className="mt-12 border-t border-line pt-6">
+      <section className="mt-12 flex flex-wrap items-center gap-4 border-t border-line pt-6">
+        <Link
+          href="/account/password"
+          className="rounded border border-line bg-cream px-4 py-2 text-walnut transition-colors hover:border-walnut hover:text-iron"
+        >
+          Change password
+        </Link>
         <form action={signOut}>
           <button
             type="submit"

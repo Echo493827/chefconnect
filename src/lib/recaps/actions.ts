@@ -61,7 +61,7 @@ export async function saveRecap(sessionId: string, _prev: FormState, formData: F
     return { error: "Give your recap a title (up to 120 characters).", message: null };
   }
   if (body.length > 20000) {
-    return { error: "That recap is a bit long — please keep it under 20,000 characters.", message: null };
+    return { error: "That recap is a bit long. Please keep it under 20,000 characters.", message: null };
   }
 
   // Preserve an existing publish time; only stamp it when first publishing.

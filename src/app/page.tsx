@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Find a cooking class",
-  description: "Browse and book cooking classes near you or anywhere you're headed — by cuisine, date, and place.",
+  description: "Browse and book cooking classes near you or anywhere you're headed, by cuisine, date, and place.",
 };
 
 type SearchParams = {

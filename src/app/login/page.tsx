@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
@@ -24,6 +25,11 @@ export default async function LoginPage({ searchParams }: { searchParams: { next
       <div className="mt-8">
         <LoginForm next={next} />
       </div>
+      <p className="mt-4 text-sm text-walnut">
+        <Link href="/forgot-password" className="underline decoration-line underline-offset-2 hover:text-iron">
+          Forgot your password?
+        </Link>
+      </p>
     </main>
   );
 }

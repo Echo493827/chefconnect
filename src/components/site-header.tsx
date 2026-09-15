@@ -40,6 +40,9 @@ export async function SiteHeader() {
         <nav className="flex items-center gap-5 text-sm" aria-label="Main">
           {displayName ? (
             <>
+              <Link href="/" className="text-walnut transition-colors hover:text-iron">
+                Browse
+              </Link>
               {role === "admin" && (
                 <Link href="/admin" className="text-walnut transition-colors hover:text-iron">
                   Moderation
@@ -72,6 +75,9 @@ export async function SiteHeader() {
             </>
           ) : (
             <>
+              <Link href="/" className="text-walnut transition-colors hover:text-iron">
+                Browse
+              </Link>
               <Link href="/login" className="transition-colors hover:text-walnut">
                 Sign in
               </Link>
