@@ -77,9 +77,14 @@ export default async function EditClassPage({ params }: { params: { id: string }
       </div>
 
       <section className="mt-10">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-2xl">Sessions</h2>
-          <ButtonLink href={`/host/classes/${klass.id}/sessions/new`}>Schedule a session</ButtonLink>
+          <div className="flex gap-3">
+            <ButtonLink href={`/host/classes/${klass.id}/recipes`} variant="secondary">
+              Recipes & prep
+            </ButtonLink>
+            <ButtonLink href={`/host/classes/${klass.id}/sessions/new`}>Schedule a session</ButtonLink>
+          </div>
         </div>
         <div className="mt-4">
           {upcoming.length === 0 && past.length === 0 ? (
@@ -103,6 +108,14 @@ export default async function EditClassPage({ params }: { params: { id: string }
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-4">
+                      {!cancelled && (s.format === "in_person" || s.format === "hybrid") && (
+                        <Link
+                          href={`/host/classes/${klass.id}/sessions/${s.id}/prep`}
+                          className="text-sm text-walnut transition-colors hover:text-iron"
+                        >
+                          Prep sheet
+                        </Link>
+                      )}
                       {!cancelled && (
                         (() => {
                           const recap = recapBySession.get(s.id);

@@ -405,6 +405,82 @@ export type Database = {
           },
         ]
       }
+      recipe_ingredients: {
+        Row: {
+          id: string
+          recipe_id: string
+          name: string
+          quantity: number
+          unit: string | null
+          position: number
+        }
+        Insert: {
+          id?: string
+          recipe_id: string
+          name: string
+          quantity?: number
+          unit?: string | null
+          position?: number
+        }
+        Update: {
+          id?: string
+          recipe_id?: string
+          name?: string
+          quantity?: number
+          unit?: string | null
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          id: string
+          class_id: string
+          name: string
+          base_servings: number
+          notes: string | null
+          position: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          class_id: string
+          name: string
+          base_servings?: number
+          notes?: string | null
+          position?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          class_id?: string
+          name?: string
+          base_servings?: number
+          notes?: string | null
+          position?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           id: string
@@ -887,6 +963,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_chef_of_recipe: {
+        Args: {
+          p_recipe_id: string
+        }
+        Returns: boolean
+      }
       is_class_published: {
         Args: {
           p_class_id: string
@@ -899,6 +981,17 @@ export type Database = {
           p_seat: Database["public"]["Enums"]["seat_type"]
         }
         Returns: undefined
+      }
+      save_recipe: {
+        Args: {
+          p_class_id: string
+          p_name: string
+          p_base_servings: number
+          p_ingredients: Json
+          p_recipe_id?: string
+          p_notes?: string
+        }
+        Returns: string
       }
       search_classes: {
         Args: {
