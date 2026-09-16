@@ -257,6 +257,83 @@ export type Database = {
           },
         ]
       }
+      dm_messages: {
+        Row: {
+          id: string
+          thread_id: string
+          sender_id: string
+          body: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          thread_id: string
+          sender_id: string
+          body: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          thread_id?: string
+          sender_id?: string
+          body?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dm_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "dm_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dm_threads: {
+        Row: {
+          id: string
+          user_lo: string
+          user_hi: string
+          last_message_at: string | null
+          lo_last_read_at: string | null
+          hi_last_read_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_lo: string
+          user_hi: string
+          last_message_at?: string | null
+          lo_last_read_at?: string | null
+          hi_last_read_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_lo?: string
+          user_hi?: string
+          last_message_at?: string | null
+          lo_last_read_at?: string | null
+          hi_last_read_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dm_threads_user_lo_fkey"
+            columns: ["user_lo"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dm_threads_user_hi_fkey"
+            columns: ["user_hi"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       friendships: {
         Row: {
           id: string
@@ -1129,6 +1206,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_dm_participant: {
+        Args: {
+          p_thread_id: string
+        }
+        Returns: boolean
+      }
       is_thread_participant: {
         Args: {
           p_thread_id: string
@@ -1205,6 +1288,12 @@ export type Database = {
           p_target: string
         }
         Returns: undefined
+      }
+      start_dm: {
+        Args: {
+          p_friend: string
+        }
+        Returns: string
       }
       start_thread: {
         Args: {

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { RespondButtons, RemoveButton } from "@/components/friends/friend-buttons";
+import { RespondButtons, RemoveButton, MessageFriendButton } from "@/components/friends/friend-buttons";
 import { FindPeople } from "@/components/friends/find-people";
 import { ActivityFeed } from "@/components/friends/activity-feed";
 import { PageShell, EmptyState } from "@/components/ui";
@@ -88,7 +88,10 @@ export default async function FriendsPage() {
               {friends.map((f) => (
                 <li key={f.id} className="flex items-center justify-between gap-3 py-3">
                   <span className="text-iron">{f.name}</span>
-                  <RemoveButton friendshipId={f.id} label="Remove" />
+                  <div className="flex items-center gap-3">
+                    <MessageFriendButton userId={f.otherId} />
+                    <RemoveButton friendshipId={f.id} label="Remove" />
+                  </div>
                 </li>
               ))}
             </ul>

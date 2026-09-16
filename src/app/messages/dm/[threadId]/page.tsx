@@ -3,64 +3,48 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { MessageComposer } from "@/components/messages/message-composer";
-import { markThreadRead, sendMessage } from "@/lib/messages/actions";
+import { sendDmMessage, markDmRead } from "@/lib/messages/dm-actions";
 import { PageShell } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
-export const metadata: Metadata = { title: "Conversation" };
+export const metadata: Metadata = { title: "Direct message" };
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
-export default async function ThreadPage({ params }: { params: { threadId: string } }) {
+export default async function DmThreadPage({ params }: { params: { threadId: string } }) {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect(`/login?next=/messages/${params.threadId}`);
+  if (!user) redirect(`/login?next=/messages/dm/${params.threadId}`);
 
-  // RLS returns the thread only to its participants.
   const { data: thread } = await supabase
-    .from("message_threads")
-    .select("id, class_id, guest_id, chef_profile_id, classes(title, slug), users!message_threads_guest_id_fkey(display_name), chef_profiles(business_name, slug)")
+    .from("dm_threads")
+    .select("id, user_lo, user_hi, lo:users!dm_threads_user_lo_fkey(display_name), hi:users!dm_threads_user_hi_fkey(display_name)")
     .eq("id", params.threadId)
     .maybeSingle();
   if (!thread) notFound();
 
   const { data: messages } = await supabase
-    .from("messages")
+    .from("dm_messages")
     .select("id, sender_id, body, created_at")
     .eq("thread_id", thread.id)
     .order("created_at", { ascending: true });
 
-  const klass = Array.isArray(thread.classes) ? thread.classes[0] : thread.classes;
-  const guest = Array.isArray(thread.users) ? thread.users[0] : thread.users;
-  const chef = Array.isArray(thread.chef_profiles) ? thread.chef_profiles[0] : thread.chef_profiles;
-  const iAmGuest = thread.guest_id === user.id;
-  const other = iAmGuest ? chef?.business_name ?? "Chef" : guest?.display_name ?? "Guest";
+  const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? v[0] ?? null : v);
+  const iAmLo = thread.user_lo === user.id;
+  const other = (iAmLo ? one(thread.hi) : one(thread.lo))?.display_name ?? "Friend";
 
-  // Mark as read now that they're viewing it.
-  await markThreadRead(thread.id);
+  await markDmRead(thread.id);
 
   return (
     <PageShell>
       <Link href="/messages" className="text-sm text-walnut hover:text-iron">
         ← All messages
       </Link>
-      <div className="mt-3">
-        <h1 className="font-display text-3xl tracking-tight">{other}</h1>
-        <p className="mt-1 text-sm text-walnut">
-          About{" "}
-          {klass && chef ? (
-            <Link href={`/chefs/${chef.slug}/${klass.slug}`} className="underline decoration-line underline-offset-2 hover:decoration-walnut">
-              {klass.title}
-            </Link>
-          ) : (
-            "a class"
-          )}
-        </p>
-      </div>
+      <h1 className="mt-3 font-display text-3xl tracking-tight">{other}</h1>
 
       <div className="mt-6 space-y-3">
         {(messages ?? []).length === 0 ? (
@@ -80,7 +64,7 @@ export default async function ThreadPage({ params }: { params: { threadId: strin
         )}
       </div>
 
-      <MessageComposer action={sendMessage.bind(null, thread.id)} />
+      <MessageComposer action={sendDmMessage.bind(null, thread.id)} />
     </PageShell>
   );
 }

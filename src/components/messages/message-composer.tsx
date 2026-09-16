@@ -2,14 +2,18 @@
 
 import { useRef } from "react";
 import { useFormState } from "react-dom";
-import { sendMessage, type FormState } from "@/lib/messages/actions";
+import type { FormState } from "@/lib/messages/actions";
 import { SubmitButton } from "@/components/auth/submit-button";
 
 const initialState: FormState = { error: null };
 
-// Compose box at the bottom of a thread. Clears on a successful send.
-export function MessageComposer({ threadId }: { threadId: string }) {
-  const action = sendMessage.bind(null, threadId);
+// Compose box at the bottom of a thread. Works for both class threads and friend
+// DMs — the caller passes the bound send action. Clears on a successful send.
+export function MessageComposer({
+  action,
+}: {
+  action: (prev: FormState, formData: FormData) => Promise<FormState>;
+}) {
   const [state, formAction] = useFormState(action, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 

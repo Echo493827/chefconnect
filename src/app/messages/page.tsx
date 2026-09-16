@@ -19,59 +19,91 @@ function timeAgo(iso: string | null): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+type Row = { href: string; title: string; subtitle: string; at: string | null; unread: boolean };
+
 export default async function MessagesPage() {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/messages");
+  const uid = user.id;
+  const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? v[0] ?? null : v);
 
-  const { data: myChef } = await supabase.from("chef_profiles").select("id").eq("user_id", user.id).maybeSingle();
+  const { data: myChef } = await supabase.from("chef_profiles").select("id").eq("user_id", uid).maybeSingle();
 
-  // Threads where I'm the guest or (if I'm a chef) the chef.
-  const { data: threads } = await supabase
+  // Class Q&A threads
+  const { data: classThreads } = await supabase
     .from("message_threads")
-    .select(
-      "id, class_id, guest_id, chef_profile_id, last_message_at, guest_last_read_at, chef_last_read_at, classes(title, slug), users!message_threads_guest_id_fkey(display_name), chef_profiles(business_name, slug)",
-    )
+    .select("id, chef_profile_id, last_message_at, guest_last_read_at, chef_last_read_at, classes(title), users!message_threads_guest_id_fkey(display_name), chef_profiles(business_name)")
     .order("last_message_at", { ascending: false, nullsFirst: false })
     .limit(100);
 
-  const list = (threads ?? []).filter((t) => t.last_message_at); // only threads with activity
+  // Friend DMs
+  const { data: dmThreads } = await supabase
+    .from("dm_threads")
+    .select("id, user_lo, last_message_at, lo_last_read_at, hi_last_read_at, lo:users!dm_threads_user_lo_fkey(display_name), hi:users!dm_threads_user_hi_fkey(display_name)")
+    .order("last_message_at", { ascending: false, nullsFirst: false })
+    .limit(100);
+
+  const rows: Row[] = [];
+
+  for (const t of classThreads ?? []) {
+    if (!t.last_message_at) continue;
+    const iAmChef = myChef?.id === t.chef_profile_id;
+    const klass = one(t.classes);
+    const guest = one(t.users);
+    const chef = one(t.chef_profiles);
+    const myRead = iAmChef ? t.chef_last_read_at : t.guest_last_read_at;
+    rows.push({
+      href: `/messages/${t.id}`,
+      title: iAmChef ? guest?.display_name ?? "Guest" : chef?.business_name ?? "Chef",
+      subtitle: `about ${klass?.title ?? "a class"}`,
+      at: t.last_message_at,
+      unread: Boolean(!myRead || new Date(t.last_message_at) > new Date(myRead)),
+    });
+  }
+
+  for (const t of dmThreads ?? []) {
+    if (!t.last_message_at) continue;
+    const iAmLo = t.user_lo === uid;
+    const other = (iAmLo ? one(t.hi) : one(t.lo))?.display_name ?? "Friend";
+    const myRead = iAmLo ? t.lo_last_read_at : t.hi_last_read_at;
+    rows.push({
+      href: `/messages/dm/${t.id}`,
+      title: other,
+      subtitle: "Direct message",
+      at: t.last_message_at,
+      unread: Boolean(!myRead || new Date(t.last_message_at) > new Date(myRead)),
+    });
+  }
+
+  rows.sort((a, b) => new Date(b.at ?? 0).getTime() - new Date(a.at ?? 0).getTime());
 
   return (
     <PageShell>
       <h1 className="font-display text-4xl tracking-tight">Messages</h1>
       <div className="mt-6">
-        {list.length === 0 ? (
+        {rows.length === 0 ? (
           <EmptyState title="No messages yet">
-            When you ask a chef a question about a class, the conversation shows up here.
+            Ask a chef about a class, or message a friend, and the conversation shows up here.
           </EmptyState>
         ) : (
           <ul className="divide-y divide-line border-y border-line">
-            {list.map((t) => {
-              const iAmChef = myChef?.id === t.chef_profile_id;
-              const klass = Array.isArray(t.classes) ? t.classes[0] : t.classes;
-              const guest = Array.isArray(t.users) ? t.users[0] : t.users;
-              const chef = Array.isArray(t.chef_profiles) ? t.chef_profiles[0] : t.chef_profiles;
-              const other = iAmChef ? guest?.display_name ?? "Guest" : chef?.business_name ?? "Chef";
-              const myRead = iAmChef ? t.chef_last_read_at : t.guest_last_read_at;
-              const unread = Boolean(t.last_message_at && (!myRead || new Date(t.last_message_at) > new Date(myRead)));
-              return (
-                <li key={t.id}>
-                  <Link href={`/messages/${t.id}`} className="flex items-start gap-3 py-4 transition-colors hover:bg-cream/60">
-                    <span aria-hidden="true" className={`mt-2 h-2 w-2 shrink-0 rounded-full ${unread ? "bg-olive" : "bg-transparent"}`} />
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-baseline justify-between gap-3">
-                        <span className={unread ? "font-medium text-iron" : "text-iron"}>{other}</span>
-                        <span className="shrink-0 text-xs text-walnut">{timeAgo(t.last_message_at)}</span>
-                      </span>
-                      <span className="mt-0.5 block truncate text-sm text-walnut">about {klass?.title ?? "a class"}</span>
+            {rows.map((r) => (
+              <li key={r.href}>
+                <Link href={r.href} className="flex items-start gap-3 py-4 transition-colors hover:bg-cream/60">
+                  <span aria-hidden="true" className={`mt-2 h-2 w-2 shrink-0 rounded-full ${r.unread ? "bg-olive" : "bg-transparent"}`} />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-3">
+                      <span className={r.unread ? "font-medium text-iron" : "text-iron"}>{r.title}</span>
+                      <span className="shrink-0 text-xs text-walnut">{timeAgo(r.at)}</span>
                     </span>
-                  </Link>
-                </li>
-              );
-            })}
+                    <span className="mt-0.5 block truncate text-sm text-walnut">{r.subtitle}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
           </ul>
         )}
       </div>

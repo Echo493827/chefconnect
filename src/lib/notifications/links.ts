@@ -17,6 +17,10 @@ export function notificationHref(kind: string, data: NotificationData | null): s
       const t = str(d, "thread_id");
       return t ? `/messages/${t}` : "/messages";
     }
+    case "dm": {
+      const t = str(d, "dm_thread_id");
+      return t ? `/messages/dm/${t}` : "/messages";
+    }
     case "booking_confirmed":
     case "session_cancelled":
       return "/bookings";
