@@ -21,7 +21,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: { b
   const { data: bookingRows } = await supabase
     .from("bookings")
     .select(
-      "id, seat_type, status, session_id, sessions(id, starts_at, timezone, format, location_id, classes(title, slug, chef_profiles(slug, business_name)))",
+      "id, seat_type, status, quantity, session_id, sessions(id, starts_at, timezone, format, location_id, classes(title, slug, chef_profiles(slug, business_name)))",
     )
     .eq("user_id", user.id)
     .neq("status", "cancelled")
@@ -126,6 +126,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: { b
                           <p className="mt-0.5 text-sm text-walnut">
                             {chef?.business_name ? `with ${chef.business_name} · ` : ""}
                             {formatSessionDateTime(s.starts_at, s.timezone)} · {b.seat_type === "in_person" ? "In person" : "Online"}
+                            {b.quantity > 1 ? ` · ${b.quantity} seats` : ""}
                           </p>
                         </div>
                         <CancelBookingButton bookingId={b.id} />

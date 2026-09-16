@@ -16,17 +16,19 @@ export function BookingForm({
   waiverVersion,
   waiverTitle,
   waiverBody,
-  inpersonAvailable,
-  virtualAvailable,
+  inpersonLeft,
+  virtualLeft,
 }: {
   sessionId: string;
   format: Database["public"]["Enums"]["session_format"];
   waiverVersion: string;
   waiverTitle: string;
   waiverBody: string;
-  inpersonAvailable: boolean;
-  virtualAvailable: boolean;
+  inpersonLeft: number;
+  virtualLeft: number;
 }) {
+  const inpersonAvailable = inpersonLeft > 0;
+  const virtualAvailable = virtualLeft > 0;
   const action = createBooking.bind(null, sessionId);
   const [state, formAction] = useFormState(action, initialState);
 
@@ -34,6 +36,9 @@ export function BookingForm({
   const onlyOption: SeatType | null =
     format === "in_person" ? "in_person" : format === "virtual" ? "virtual" : null;
   const [seat, setSeat] = useState<SeatType>(onlyOption ?? (inpersonAvailable ? "in_person" : "virtual"));
+  const [quantity, setQuantity] = useState(1);
+  const maxSeats = Math.min(10, seat === "in_person" ? inpersonLeft : virtualLeft) || 1;
+  const cappedQty = Math.min(quantity, maxSeats);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -80,6 +85,39 @@ export function BookingForm({
           </div>
         </fieldset>
       )}
+
+      <div>
+        <label htmlFor="quantity" className="block text-sm font-medium text-iron">
+          How many seats?
+        </label>
+        <div className="mt-1.5 flex items-center gap-3">
+          <input
+            id="quantity"
+            name="quantity"
+            type="number"
+            min={1}
+            max={maxSeats}
+            value={cappedQty}
+            onChange={(e) => setQuantity(Math.max(1, Math.min(maxSeats, Number(e.target.value) || 1)))}
+            className="w-20 rounded border border-line bg-cream px-3 py-2 text-sm"
+          />
+          <span className="text-sm text-walnut">{maxSeats} available</span>
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor="dietary_notes" className="block text-sm font-medium text-iron">
+          Allergies or dietary needs? <span className="font-normal text-walnut/60">(optional, shared with the chef)</span>
+        </label>
+        <textarea
+          id="dietary_notes"
+          name="dietary_notes"
+          rows={2}
+          maxLength={1000}
+          placeholder="e.g. one nut allergy; two vegetarians"
+          className="mt-1.5 block w-full rounded border border-line bg-cream px-3 py-2 text-sm"
+        />
+      </div>
 
       <div>
         <p className="text-sm font-medium text-iron">{waiverTitle}</p>

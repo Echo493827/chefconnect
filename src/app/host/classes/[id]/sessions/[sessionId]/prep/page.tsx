@@ -34,6 +34,18 @@ export default async function PrepSheetPage({ params }: { params: { id: string; 
     .eq("class_id", klass.id)
     .order("position", { ascending: true });
 
+  const { data: dietRows } = await supabase
+    .from("bookings")
+    .select("dietary_notes, quantity, users(display_name)")
+    .eq("session_id", session.id)
+    .eq("status", "confirmed")
+    .not("dietary_notes", "is", null);
+  const one = <T,>(v: T | T[] | null): T | null => (Array.isArray(v) ? v[0] ?? null : v);
+  const dietaryNotes = (dietRows ?? []).map((d) => ({
+    name: one(d.users)?.display_name ?? "Guest",
+    note: d.dietary_notes as string,
+  }));
+
   const prepRecipes = (recipes ?? []).map((r) => ({
     id: r.id,
     name: r.name,
@@ -63,7 +75,21 @@ export default async function PrepSheetPage({ params }: { params: { id: string; 
             </span>
           </EmptyState>
         ) : (
-          <PrepSheet recipes={prepRecipes} defaultHeadcount={session.inperson_booked} />
+          <>
+            {dietaryNotes.length > 0 && (
+              <div className="mb-6 rounded border border-turmeric/30 bg-turmeric/10 p-4">
+                <h2 className="font-display text-lg">Dietary needs from guests</h2>
+                <ul className="mt-2 space-y-1 text-sm text-iron">
+                  {dietaryNotes.map((d, i) => (
+                    <li key={i}>
+                      <span className="font-medium">{d.name}:</span> {d.note}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <PrepSheet recipes={prepRecipes} defaultHeadcount={session.inperson_booked} />
+          </>
         )}
       </div>
     </PageShell>

@@ -96,12 +96,16 @@ export default async function BookPage({ params }: { params: { sessionId: string
     );
   }
 
-  const inpersonAvailable =
-    (session.format === "in_person" || session.format === "hybrid") &&
-    session.inperson_booked < session.inperson_capacity;
-  const virtualAvailable =
-    (session.format === "virtual" || session.format === "hybrid") &&
-    session.virtual_booked < session.virtual_capacity;
+  const inpersonLeft =
+    session.format === "in_person" || session.format === "hybrid"
+      ? Math.max(0, session.inperson_capacity - session.inperson_booked)
+      : 0;
+  const virtualLeft =
+    session.format === "virtual" || session.format === "hybrid"
+      ? Math.max(0, session.virtual_capacity - session.virtual_booked)
+      : 0;
+  const inpersonAvailable = inpersonLeft > 0;
+  const virtualAvailable = virtualLeft > 0;
 
   if (!inpersonAvailable && !virtualAvailable) {
     return (
@@ -148,8 +152,8 @@ export default async function BookPage({ params }: { params: { sessionId: string
         waiverVersion={waiver.version}
         waiverTitle={waiver.title}
         waiverBody={waiver.body}
-        inpersonAvailable={inpersonAvailable}
-        virtualAvailable={virtualAvailable}
+        inpersonLeft={inpersonLeft}
+        virtualLeft={virtualLeft}
       />
     </Frame>
   );

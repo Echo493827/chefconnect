@@ -22,6 +22,8 @@ export type Database = {
           user_id: string
           seat_type: Database["public"]["Enums"]["seat_type"]
           status: Database["public"]["Enums"]["booking_status"]
+          quantity: number
+          dietary_notes: string | null
           waiver_acceptance_id: string
           cancelled_at: string | null
           created_at: string
@@ -33,6 +35,8 @@ export type Database = {
           user_id: string
           seat_type: Database["public"]["Enums"]["seat_type"]
           status?: Database["public"]["Enums"]["booking_status"]
+          quantity?: number
+          dietary_notes?: string | null
           waiver_acceptance_id: string
           cancelled_at?: string | null
           created_at?: string
@@ -44,6 +48,8 @@ export type Database = {
           user_id?: string
           seat_type?: Database["public"]["Enums"]["seat_type"]
           status?: Database["public"]["Enums"]["booking_status"]
+          quantity?: number
+          dietary_notes?: string | null
           waiver_acceptance_id?: string
           cancelled_at?: string | null
           created_at?: string

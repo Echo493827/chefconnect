@@ -42,6 +42,12 @@ export async function createBooking(sessionId: string, _prev: FormState, formDat
     return { error: "Something went out of date. Refresh the page and try again." };
   }
 
+  const quantity = Math.max(1, Math.min(10, Math.trunc(Number(formData.get("quantity")) || 1)));
+  const dietaryNotes = String(formData.get("dietary_notes") ?? "").trim();
+  if (dietaryNotes.length > 1000) {
+    return { error: "Please keep dietary notes under 1000 characters." };
+  }
+
   const h = headers();
   const { error } = await supabase.rpc("book_session", {
     p_session_id: sessionId,
@@ -49,6 +55,8 @@ export async function createBooking(sessionId: string, _prev: FormState, formDat
     p_waiver_version: waiverVersion,
     p_ip_address: clientIp() ?? undefined,
     p_user_agent: h.get("user-agent")?.slice(0, 500) ?? undefined,
+    p_quantity: quantity,
+    p_dietary_notes: dietaryNotes || undefined,
   });
 
   if (error) {

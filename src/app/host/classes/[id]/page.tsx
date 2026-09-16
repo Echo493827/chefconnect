@@ -108,6 +108,14 @@ export default async function EditClassPage({ params }: { params: { id: string }
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-4">
+                      {!cancelled && (
+                        <Link
+                          href={`/host/classes/${klass.id}/sessions/${s.id}/attendees`}
+                          className="text-sm text-walnut transition-colors hover:text-iron"
+                        >
+                          Attendees
+                        </Link>
+                      )}
                       {!cancelled && (s.format === "in_person" || s.format === "hybrid") && (
                         <Link
                           href={`/host/classes/${klass.id}/sessions/${s.id}/prep`}
