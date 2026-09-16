@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { PageShell } from "@/components/ui";
 import { SKILL_LEVEL_LABELS } from "@/components/chef/chef-type";
 import { MessageTheChef } from "@/components/messages/message-the-chef";
+import { SaveButton } from "@/components/saved/save-button";
+import { isClassSaved } from "@/lib/saved/get-saved";
 import { formatDuration, formatSessionDateTime, seatsLeftLabel } from "@/lib/format";
 import { ReviewList } from "@/components/reviews/review-list";
 import { RatingSummary } from "@/components/reviews/stars";
@@ -47,6 +49,7 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
     data: { user },
   } = await supabase.auth.getUser();
   const isOwner = Boolean(user && chef.user_id === user.id);
+  const saved = user ? await isClassSaved(klass.id) : false;
 
   // Upcoming, still-scheduled sessions, with the public (fuzzed) location info.
   const { data: sessionRows } = await supabase
@@ -95,9 +98,10 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
       <h1 className="mt-1 font-display text-5xl leading-tight tracking-tight">{klass.title}</h1>
       {klass.summary && <p className="mt-3 max-w-prose text-lg text-walnut">{klass.summary}</p>}
 
-      {!isOwner && (
-        <div className="mt-4">
-          {user ? (
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        {user && <SaveButton classId={klass.id} saved={saved} withLabel />}
+        {!isOwner &&
+          (user ? (
             <MessageTheChef classId={klass.id} chefName={chef.business_name || "the chef"} />
           ) : (
             <a
@@ -106,9 +110,8 @@ export default async function ClassDetailPage({ params }: { params: { slug: stri
             >
               Sign in to ask a question
             </a>
-          )}
-        </div>
-      )}
+          ))}
+      </div>
       {reviewCount > 0 && <div className="mt-3"><RatingSummary average={reviewAvg} count={reviewCount} /></div>}
 
       {(klass.tags.length > 0 || klass.dietary_tags.length > 0) && (

@@ -2,13 +2,14 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDuration, formatSessionDateTime } from "@/lib/format";
 import { SKILL_LEVEL_LABELS } from "@/components/chef/chef-type";
+import { SaveButton } from "@/components/saved/save-button";
 import type { Database } from "@/lib/database.types";
 
 type Result = Database["public"]["Functions"]["search_classes"]["Returns"][number];
 
 const FORMAT_LABELS: Record<string, string> = { in_person: "In person", virtual: "Online", hybrid: "In person + online" };
 
-export function ClassCard({ result }: { result: Result }) {
+export function ClassCard({ result, saved }: { result: Result; saved?: boolean }) {
   const price = result.price_cents === 0 ? "Free" : `$${(result.price_cents / 100).toFixed(2)}`;
   const area =
     result.next_format === "virtual"
@@ -37,6 +38,7 @@ export function ClassCard({ result }: { result: Result }) {
           </div>
         )}
         <span className="absolute left-3 top-3 rounded-sm bg-iron/80 px-2 py-0.5 text-xs font-medium text-cream">{price}</span>
+        {saved !== undefined && <SaveButton classId={result.class_id} saved={saved} overlay />}
       </div>
 
       <div className="flex flex-1 flex-col p-4">

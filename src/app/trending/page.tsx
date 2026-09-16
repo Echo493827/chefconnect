@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ClassCard } from "@/components/search/class-card";
+import { savedClassIds } from "@/lib/saved/get-saved";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -13,6 +14,7 @@ export default async function TrendingPage() {
   const supabase = createClient();
   const { data: results } = await supabase.rpc("trending_classes", { p_limit: 24 });
   const list = results ?? [];
+  const saved = await savedClassIds(list.map((r) => r.class_id));
 
   return (
     <main className="mx-auto w-full max-w-5xl px-6 pb-24 pt-10">
@@ -37,7 +39,7 @@ export default async function TrendingPage() {
           <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {list.map((r) => (
               <li key={r.class_id}>
-                <ClassCard result={r} />
+                <ClassCard result={r} saved={saved.has(r.class_id) ? true : undefined} />
               </li>
             ))}
           </ul>

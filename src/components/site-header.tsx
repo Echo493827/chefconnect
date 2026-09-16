@@ -51,6 +51,9 @@ export async function SiteHeader() {
                   Moderation
                 </Link>
               )}
+              <Link href="/saved" className="text-walnut transition-colors hover:text-iron">
+                Saved
+              </Link>
               <Link href="/bookings" className="text-walnut transition-colors hover:text-iron">
                 My bookings
               </Link>

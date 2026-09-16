@@ -7,6 +7,7 @@ import { CHEF_TYPE_LABELS } from "@/components/chef/chef-type";
 import { ReviewList } from "@/components/reviews/review-list";
 import { RatingSummary } from "@/components/reviews/stars";
 import { ClassCard } from "@/components/search/class-card";
+import { savedClassIds } from "@/lib/saved/get-saved";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,8 @@ export default async function ChefProfilePage({ params }: { params: { slug: stri
       };
     })
     .filter((c): c is NonNullable<typeof c> => c !== null);
+
+  const savedSet = await savedClassIds(cards.map((c) => c.class_id));
 
   const { data: reviewRows } = await supabase
     .from("reviews")
@@ -207,7 +210,7 @@ export default async function ChefProfilePage({ params }: { params: { slug: stri
             <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {cards.map((c) => (
                 <li key={c.class_id}>
-                  <ClassCard result={c} />
+                  <ClassCard result={c} saved={savedSet.has(c.class_id) ? true : undefined} />
                 </li>
               ))}
             </ul>

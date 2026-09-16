@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { geocodeAddress, isBroadPlaceType } from "@/lib/geocode";
 import { SearchControls, type SearchValues } from "@/components/search/search-controls";
 import { ClassCard } from "@/components/search/class-card";
+import { savedClassIds } from "@/lib/saved/get-saved";
 import type { Database } from "@/lib/database.types";
 
 export const dynamic = "force-dynamic";
@@ -100,6 +101,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
   });
 
   const list = results ?? [];
+  const saved = await savedClassIds(list.map((r) => r.class_id));
   const hasFilters = Boolean(q || near || from || to || format || skill || diet.length);
   const initial: SearchValues = { q, near, from, to, format, radius, skill, diet };
 
@@ -144,7 +146,7 @@ export default async function HomePage({ searchParams }: { searchParams: SearchP
           <ul className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {list.map((r) => (
               <li key={r.class_id}>
-                <ClassCard result={r} />
+                <ClassCard result={r} saved={saved.has(r.class_id) ? true : undefined} />
               </li>
             ))}
           </ul>
