@@ -37,7 +37,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const found = await loadClass(params.slug, params.classSlug);
   if (!found) return { title: "Class not found" };
-  return { title: found.klass.title, description: found.klass.summary ?? undefined };
+  const { klass, chef } = found;
+  const desc = klass.summary ?? `A ${klass.cuisine} cooking class${chef.business_name ? ` with ${chef.business_name}` : ""}.`;
+  const images = klass.cover_image_url ? [{ url: klass.cover_image_url }] : undefined;
+  return {
+    title: klass.title,
+    description: desc,
+    openGraph: { title: klass.title, description: desc, type: "website", ...(images ? { images } : {}) },
+    twitter: { card: "summary_large_image", title: klass.title, description: desc, ...(images ? { images: [klass.cover_image_url as string] } : {}) },
+  };
 }
 
 export default async function ClassDetailPage({ params }: { params: { slug: string; classSlug: string } }) {

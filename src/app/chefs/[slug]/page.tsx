@@ -13,9 +13,17 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const supabase = createClient();
-  const { data } = await supabase.from("chef_profiles").select("business_name, headline").eq("slug", params.slug).maybeSingle();
+  const { data } = await supabase.from("chef_profiles").select("business_name, headline, cover_image_url").eq("slug", params.slug).maybeSingle();
   if (!data) return { title: "Chef not found" };
-  return { title: data.business_name || "Chef", description: data.headline ?? undefined };
+  const name = data.business_name || "Chef";
+  const desc = data.headline ?? `Cooking classes with ${name}.`;
+  const images = data.cover_image_url ? [{ url: data.cover_image_url }] : undefined;
+  return {
+    title: name,
+    description: desc,
+    openGraph: { title: name, description: desc, type: "profile", ...(images ? { images } : {}) },
+    twitter: { card: "summary_large_image", title: name, description: desc, ...(images ? { images: [data.cover_image_url as string] } : {}) },
+  };
 }
 
 export default async function ChefProfilePage({ params }: { params: { slug: string } }) {

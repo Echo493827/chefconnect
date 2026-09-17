@@ -1,19 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { SiteHeader } from "@/components/site-header";
+import { SiteFooter } from "@/components/site-footer";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 import "./globals.css";
 
-// The two families behind the design tokens: Fraunces for display type (a warm,
-// slightly rustic serif) and Source Sans 3 for body text. Bundled as local
-// variable fonts so the build never depends on Google being reachable and no
-// request ever leaves the visitor's browser for them.
 const fraunces = localFont({
   src: "./fonts/fraunces-latin.woff2",
   variable: "--font-display",
   weight: "100 900",
   display: "swap",
 });
-
 const sourceSans = localFont({
   src: "./fonts/source-sans-3-latin.woff2",
   variable: "--font-body",
@@ -22,11 +19,31 @@ const sourceSans = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "ChefConnect",
-    template: "%s · ChefConnect",
+    default: `${SITE_NAME} · Find a cooking class`,
+    template: `%s · ${SITE_NAME}`,
   },
-  description: "Find and host cooking classes with home chefs, restaurant chefs, creators and cooking schools.",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  manifest: "/manifest.webmanifest",
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    images: ["/og-default.png"],
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -38,9 +55,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${sourceSans.variable}`}>
-      <body>
+      <body className="flex min-h-screen flex-col">
         <SiteHeader />
-        {children}
+        <div className="flex-1">{children}</div>
+        <SiteFooter />
       </body>
     </html>
   );
