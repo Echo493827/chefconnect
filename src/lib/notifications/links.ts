@@ -10,6 +10,16 @@ function str(data: NotificationData, key: string): string | null {
 export function notificationHref(kind: string, data: NotificationData | null): string {
   const d = data ?? {};
   switch (kind) {
+    case "waitlist_open": {
+      const sid = str(d, "session_id");
+      return sid ? `/book/${sid}` : "/";
+    }
+    case "reminder":
+      return "/bookings";
+    case "review_nudge": {
+      const bid = str(d, "booking_id");
+      return bid ? `/review/${bid}` : "/bookings";
+    }
     case "friend_request":
     case "friend_accepted":
       return "/friends";

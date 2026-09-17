@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { BookingForm } from "@/components/booking/booking-form";
+import { WaitlistButton } from "@/components/booking/waitlist-button";
 import { PageShell } from "@/components/ui";
 import { formatSessionDateTime, seatsLeftLabel } from "@/lib/format";
 
@@ -108,14 +109,20 @@ export default async function BookPage({ params }: { params: { sessionId: string
   const virtualAvailable = virtualLeft > 0;
 
   if (!inpersonAvailable && !virtualAvailable) {
+    const { data: wl } = await supabase
+      .from("waitlist_entries")
+      .select("id")
+      .eq("session_id", session.id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    // seat type to waitlist for: the type this session actually offers
+    const waitSeat = session.format === "virtual" ? "virtual" : "in_person";
     return (
       <Frame>
-        <div className="rounded border border-line bg-cream/60 p-4">
-          <p className="text-walnut">This session is full.</p>
-          <Link href={backHref} className="mt-2 inline-block text-sm underline decoration-line underline-offset-2 hover:decoration-walnut">
-            See other dates →
-          </Link>
-        </div>
+        <WaitlistButton sessionId={session.id} seatType={waitSeat} onWaitlist={Boolean(wl)} />
+        <Link href={backHref} className="mt-3 inline-block text-sm underline decoration-line underline-offset-2 hover:decoration-walnut">
+          See other dates
+        </Link>
       </Frame>
     );
   }

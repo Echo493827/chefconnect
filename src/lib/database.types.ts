@@ -907,6 +907,8 @@ export type Database = {
           status: Database["public"]["Enums"]["session_status"]
           cancelled_at: string | null
           cancellation_reason: string | null
+          reminder_sent_at: string | null
+          review_nudge_sent_at: string | null
           created_at: string
           updated_at: string
         }
@@ -926,6 +928,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["session_status"]
           cancelled_at?: string | null
           cancellation_reason?: string | null
+          reminder_sent_at?: string | null
+          review_nudge_sent_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -945,6 +949,8 @@ export type Database = {
           status?: Database["public"]["Enums"]["session_status"]
           cancelled_at?: string | null
           cancellation_reason?: string | null
+          reminder_sent_at?: string | null
+          review_nudge_sent_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -999,6 +1005,38 @@ export type Database = {
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waitlist_entries: {
+        Row: {
+          id: string
+          session_id: string
+          user_id: string
+          seat_type: Database["public"]["Enums"]["seat_type"]
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          session_id: string
+          user_id: string
+          seat_type: Database["public"]["Enums"]["seat_type"]
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          session_id?: string
+          user_id?: string
+          seat_type?: Database["public"]["Enums"]["seat_type"]
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_entries_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -1172,6 +1210,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      join_waitlist: {
+        Args: {
+          p_session_id: string
+          p_seat_type: Database["public"]["Enums"]["seat_type"]
+        }
+        Returns: undefined
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -1293,6 +1338,14 @@ export type Database = {
         Args: {
           p_target: string
         }
+        Returns: undefined
+      }
+      send_review_nudges: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      send_session_reminders: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       start_dm: {
